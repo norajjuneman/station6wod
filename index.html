@@ -30,6 +30,10 @@
 <div class="timer-state" id="timerState">Ready</div><div class="row"><button class="btn" id="timerToggle">Start</button><button class="btn secondary" id="timerReset">Reset</button></div>
 <button class="btn secondary wide hide" id="startCircuit" type="button">Skip Warmup / Start Circuit</button>
   <button class="btn secondary wide" id="soundToggle" type="button" aria-pressed="true">🔊 Sound: ON</button>
+  <p id="wakeLockStatus" class="small muted"
+   style="text-align:center" role="status">
+  Screen awake: Standby
+</p>
 <p class="small muted" id="timerHint">The timer runs while this tab remains open. Keep your screen awake during workouts.
 </p></div>
 <div id="activeWorkoutPanel" class="panel hide">
@@ -325,6 +329,79 @@ $('completeWorkout').addEventListener('click',()=>saveWorkout(today));
 $('mobilityItems').innerHTML=mobility.map(([area,move,dose])=>`<div class="panel"><div class="tag">${escapeHTML(area)}</div><h3>${escapeHTML(move)}</h3><div class="muted">${escapeHTML(dose)}</div></div>`).join('');
 function openTab(name){document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hide',s.id!==name));document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));window.scrollTo(0,0)}
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>openTab(b.dataset.tab)));
+  // Automatic screen wake lock
+let wakeLock = null;
+let wakeLockPending = false;
+
+function updateWakeLockStatus(message) {
+  $('wakeLockStatus').textContent =
+    'Screen awake: ' + message;
+}
+
+async function requestWakeLock() {
+  if (!timer.running || wakeLockPending || wakeLock) return;
+
+  if (!('wakeLock' in navigator)) {
+    updateWakeLockStatus('Unavailable');
+    return;
+  }
+
+  if (document.visibilityState !== 'visible') return;
+
+  wakeLockPending = true;
+
+  try {
+    const lock = await navigator.wakeLock.request('screen');
+
+    if (!timer.running) {
+      await lock.release();
+      return;
+    }
+
+    wakeLock = lock;
+    updateWakeLockStatus('Active');
+
+    lock.addEventListener('release', () => {
+      if (wakeLock === lock) {
+        wakeLock = null;
+
+        updateWakeLockStatus(
+          timer.running ? 'Standby — interrupted' : 'Standby'
+        );
+      }
+    });
+  } catch {
+    updateWakeLockStatus(
+      timer.running ? 'Unavailable' : 'Standby'
+    );
+  } finally {
+    wakeLockPending = false;
+  }
+}
+
+async function releaseWakeLock() {
+  const lock = wakeLock;
+  wakeLock = null;
+  updateWakeLockStatus('Standby');
+
+  if (lock) {
+    try {
+      await lock.release();
+    } catch {}
+  }
+}
+  document.addEventListener('visibilitychange', () => {
+  if (
+    document.visibilityState === 'visible' &&
+    timer.running
+  ) {
+    tick();
+
+    if (timer.running) {
+      requestWakeLock();
+    }
+  }
+});
 // Timestamp-based timing prevents setInterval drift while the page remains active.
 let timer={running:false,remaining:900,deadline:0,segments:[],segmentIndex:0,segmentRemaining:0,segmentDeadline:0,handle:null};
 const num=(id,min,max)=>Math.min(max,Math.max(min,Number($(id).value)||min));
@@ -494,7 +571,14 @@ $('startCircuit').addEventListener('click',()=>{
   toggleTimer();
 });
 
-function stopTick(){if(timer.handle!==null){clearInterval(timer.handle);timer.handle=null}}
+function stopTick() {
+  if (timer.handle !== null) {
+    clearInterval(timer.handle);
+    timer.handle = null;
+  }
+
+  releaseWakeLock();
+}
 function resetTimer(){stopTick();const segments=buildSegments();timer={running:false,remaining:segments.reduce((n,s)=>n+s.seconds,0),deadline:0,segments,segmentIndex:0,segmentRemaining:segments[0]?.seconds||0,segmentDeadline:0,handle:null};
  timer.warmupPlan =
   segments[0]?.name === 'WARMUP'
@@ -552,7 +636,7 @@ if(mode()==='circuit'){
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
 try{navigator.vibrate?.([180,100,180])}catch{}}}
 function toggleTimer(){
-  unlockAudio();if(timer.running){tick();timer.running=false;stopTick();$('timerToggle').textContent='Resume';drawTimer();return}
+  unlockAudio();if(timer.running){tick();if(!timer.running)return;timer.running=false;stopTick();$('timerToggle').textContent='Resume';drawTimer();return}
 if(!timer.remaining){
   if(mode()==='circuit'&&timer.segments[0]?.name==='CIRCUIT'){
     $('startCircuit').click();
@@ -565,7 +649,9 @@ if (!timer.hasStarted) {
   playAlert('work');
 }
 
-timer.running=true;timer.deadline=Date.now()+timer.remaining*1000;$('timerToggle').textContent='Pause';timer.handle=setInterval(tick,200);tick()}
+timer.running=true;
+requestWakeLock();
+timer.deadline=Date.now()+timer.remaining*1000;$('timerToggle').textContent='Pause';timer.handle=setInterval(tick,200);tick()}
 $('timerMode').addEventListener('change',configureInputs);
 ['duration','timerRounds','workSec','restSec','warmupMinutes']
 .forEach(id=>$(id).addEventListener('change',resetTimer));$('timerToggle').addEventListener('click',toggleTimer);$('timerReset').addEventListener('click',resetTimer);$('startWorkout').addEventListener('click',()=>{if(!today)return;openTab('timers');applyWorkoutTimer(today)});
