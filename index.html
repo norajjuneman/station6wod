@@ -19,7 +19,13 @@
   <label for="warmupMinutes">Warmup (minutes)</label>
   <input id="warmupMinutes" type="number" min="0" max="10" value="3">
 </div>
-
+<div id="warmupPlanPanel" class="panel hide">
+  <div class="eyebrow accent">ADAPTIVE WARMUP</div>
+  <h2 id="warmupMovement">Ready</h2>
+  <div id="warmupMovementTime" class="muted"></div>
+  <p id="warmupNextMovement" class="small muted"></p>
+  <div id="warmupPlanList"></div>
+</div>
 <div class="time" id="timerDisplay" aria-live="off">15:00</div>
 <div class="timer-state" id="timerState">Ready</div><div class="row"><button class="btn" id="timerToggle">Start</button><button class="btn secondary" id="timerReset">Reset</button></div>
 <button class="btn secondary wide hide" id="startCircuit" type="button">Skip Warmup / Start Circuit</button>
@@ -39,6 +45,7 @@
 'use strict';
 // Google Sheets: File > Share > Publish to web > CSV. The first sheet must have
 // Date, Title, Focus, Minutes, Equipment, Rounds, Exercises columns.
+  const LIBRARY_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vQUyytxzJC7KkFtwbf8JGkEbIJzetL6e506swvrTXk-rBi8mtRk1KVEmKigCfOj9fNj8dl4SMBCaBO5/pub?gid=381688678&single=true&output=csv';
 const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vQUyytxzJC7KkFtwbf8JGkEbIJzetL6e506swvrTXk-rBi8mtRk1KVEmKigCfOj9fNj8dl4SMBCaBO5/pub?gid=0&single=true&output=csv';
 const mobility=[['Neck','Gentle neck turns','5 per side'],['Shoulders','Wall slides','10 reps'],['Upper back','Open-book rotations','8 per side'],['Chest','Doorway pec stretch','30 seconds per side'],['Wrists','Wrist circles','10 each direction'],['Lower back','Cat-cow','8–10 reps'],['Hips','90/90 hip switches','8 per side'],['Hip flexors','Half-kneeling hip flexor stretch','30 seconds per side'],['Glutes','Figure-four stretch','30 seconds per side'],['Hamstrings','Standing hamstring stretch','30 seconds per side'],['Quadriceps','Standing quad stretch','30 seconds per side'],['Knees','Controlled knee extensions','10 per side'],['Ankles','Knee-to-wall rocks','10 per side'],['Calves','Wall calf stretch','30 seconds per side']];
 const $=id=>document.getElementById(id);
@@ -46,14 +53,58 @@ const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<
 const dateISO=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 function parseDate(v){v=String(v||'').trim();if(/^\d{4}-\d{2}-\d{2}$/.test(v)){const d=new Date(v+'T12:00:00');return !isNaN(d)&&dateISO(d)===v?v:''}const m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);return m?parseDate(`${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`):''}
 function csvRows(raw){const rows=[];let row=[],field='',quoted=false;for(let i=0;i<raw.length;i++){const c=raw[i];if(c==='"'){if(quoted&&raw[i+1]==='"'){field+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){row.push(field);field=''}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&raw[i+1]==='\n')i++;row.push(field);if(row.some(x=>x.trim()))rows.push(row);row=[];field=''}else field+=c}row.push(field);if(row.some(x=>x.trim()))rows.push(row);return rows}
+let warmupLibrary = new Map();
 
+const normalizeExercise = name =>
+  String(name || '').trim().toLowerCase();
+
+async function loadWarmupLibrary() {
+  try {
+    const response = await fetch(LIBRARY_CSV_URL, {
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      throw new Error('Exercise Library unavailable');
+    }
+
+    const rows = csvRows(await response.text());
+    const headers = (rows.shift() || []).map(normalizeExercise);
+
+    const exerciseIndex = headers.indexOf('exercise');
+    const warmupIndex = headers.indexOf('warmup movement');
+
+    if (exerciseIndex < 0 || warmupIndex < 0) {
+      throw new Error('Missing Exercise Library columns');
+    }
+
+    warmupLibrary = new Map(
+      rows
+        .filter(row => row[exerciseIndex]?.trim())
+        .map(row => [
+          normalizeExercise(row[exerciseIndex]),
+          (row[warmupIndex] || '').trim()
+        ])
+    );
+
+  } catch (error) {
+    console.warn('Warmup Library:', error);
+  }
+}
 let scheduled=[],today=null,activeWorkout=null;
 
 const todayKey=()=>dateISO(new Date());
 let calendarOffset=0;
 
 function formatTiming(w){
-  if(w.format!=='circuit')return '';
+  if(w.format !== 'circuit') return '';
+
+  const isMobility = /mobility|recovery/i.test(w.focus || '');
+
+  if(isMobility){
+    return `${w.minutes}-min mobility circuit`;
+  }
+
   return `3-min warmup · ${Math.max(1,w.minutes-3)}-min circuit cap`;
 }
 
@@ -98,8 +149,14 @@ function showActiveWorkout(w){
 
 function applyWorkoutTimer(w){if(!w)return;showActiveWorkout(w);
 const selected=validModes.has(w.format)?w.format:"countdown";$("timerMode").value=selected;configureInputs();
-$("warmupMinutes").value=selected==="circuit"?3:0;
-$("duration").value=selected==="circuit"?Math.max(1,w.minutes-3):w.minutes;
+const isMobility = /mobility|recovery/i.test(w.focus || '');
+
+$("warmupMinutes").value =
+  selected === "circuit" && !isMobility ? 3 : 0;
+$("duration").value =
+  selected === "circuit"
+    ? Math.max(1, w.minutes - Number($("warmupMinutes").value))
+    : w.minutes;
 if(selected==="tabata"||selected==="intervals"){if(w.timerRounds>0)$("timerRounds").value=w.timerRounds;if(w.workSeconds>0)$("workSec").value=w.workSeconds;if(w.restSeconds>=0&&Number.isFinite(w.restSeconds))$("restSec").value=w.restSeconds}resetTimer()}
 function render(){
 const now=new Date(),key=todayKey();today=scheduled.find(w=>w.date===key)||null;
@@ -171,7 +228,54 @@ $('startCircuit').classList.toggle('hide',mode()!=='circuit');
 
   $('duration').previousElementSibling.textContent=mode()==='circuit'?'Circuit duration (minutes)':'Duration (minutes)';
 const m=mode(),intervalMode=m==='tabata'||m==='intervals';$('workRest').classList.toggle('hide',!intervalMode);$('roundsWrap').classList.toggle('hide',!intervalMode);if(m==='tabata'){$('workSec').value=20;$('restSec').value=10;$('timerRounds').value=8}if(m==='intervals'){$('workSec').value=40;$('restSec').value=20;$('timerRounds').value=10}$('duration').parentElement.classList.toggle('hide',intervalMode);$('timerHint').textContent=m==='emom'?'A new round starts every minute. The display shows time remaining in the workout and the current minute.':m==='amrap'?'Complete as many quality rounds as possible before time runs out.':intervalMode?'Work and rest phases alternate automatically. Keep this page open.':'Keep this page open and your screen awake during workouts.';resetTimer()}
+function buildWarmupPlan(seconds) {
+  if (seconds <= 0) return [];
 
+  const exercises = activeWorkout?.exercises || [];
+  const movements = ['Easy March in Place'];
+
+  const circuitNames = new Set(
+    exercises.map(([name]) => normalizeExercise(name))
+  );
+
+  exercises.forEach(([name]) => {
+    const movement = warmupLibrary.get(
+      normalizeExercise(name)
+    );
+
+    if (movement && !circuitNames.has(
+      normalizeExercise(movement)
+    )) {
+      movements.push(movement);
+    }
+  });
+
+  if (movements.length === 1) {
+    movements.push(
+      'Shoulder Circles',
+      'Gentle Hip Circles'
+    );
+  }
+
+  const unique = [...new Set(movements)];
+  const maxMovements = Math.max(
+    1, Math.floor(seconds / 30)
+  );
+
+  const selected = unique.slice(0, maxMovements);
+  const duration = Math.floor(
+    seconds / selected.length
+  );
+
+  return selected.map((name, index) => ({
+    name,
+    seconds: duration + (
+      index === selected.length - 1
+        ? seconds % selected.length
+        : 0
+    )
+  }));
+}
 function buildSegments(){
   if(mode()==='circuit'){
     const warmup=Math.min(10,Math.max(0,Number($('warmupMinutes').value)||0))*60;
@@ -185,8 +289,63 @@ return [{name:'CIRCUIT',seconds:circuit}];
   }
 const m=mode();if(m==='tabata'||m==='intervals'){const rounds=num('timerRounds',1,100),work=num('workSec',1,600),rest=Math.min(600,Math.max(0,Number($('restSec').value)||0)),out=[];for(let i=0;i<rounds;i++){out.push({name:`WORK · Round ${i+1}/${rounds}`,seconds:work});if(rest&&i<rounds-1)out.push({name:`REST · Round ${i+1}/${rounds}`,seconds:rest})}return out}return [{name:m.toUpperCase(),seconds:num('duration',1,180)*60}]}
 function fmt(n){n=Math.max(0,Math.ceil(n));return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`}
+function drawWarmupPlan() {
+  const plan = timer.warmupPlan || [];
+  const phase = timer.segments[0]?.name;
 
+  const visible =
+    mode() === 'circuit' &&
+    phase === 'WARMUP' &&
+    timer.remaining > 0 &&
+    plan.length > 0;
+
+  $('warmupPlanPanel').classList.toggle(
+    'hide', !visible
+  );
+
+  if (!visible) return;
+
+  const total = plan.reduce(
+    (sum, move) => sum + move.seconds, 0
+  );
+
+  let elapsed = total - timer.remaining;
+  let index = 0;
+
+  while (
+    index < plan.length - 1 &&
+    elapsed >= plan[index].seconds
+  ) {
+    elapsed -= plan[index].seconds;
+    index++;
+  }
+
+  const current = plan[index];
+  const next = plan[index + 1];
+
+  $('warmupMovement').textContent = current.name;
+
+  $('warmupMovementTime').textContent =
+    fmt(current.seconds - elapsed) + ' remaining';
+
+  $('warmupNextMovement').textContent = next
+    ? 'Next: ' + next.name
+    : 'Final warmup movement';
+
+  $('warmupPlanList').innerHTML = plan.map(
+    (move, i) => `
+      <div class="exercise">
+        <strong class="${i === index ? 'accent' : 'muted'}">
+          ${i < index ? '✓ ' : ''}
+          ${escapeHTML(move.name)}
+        </strong>
+        <span>${fmt(move.seconds)}</span>
+      </div>
+    `
+  ).join('');
+}
 function drawTimer(){
+    drawWarmupPlan();
   if(mode()==='circuit'){
     const phase=timer.segments[0]?.name||'CIRCUIT';
     $('timerDisplay').textContent=fmt(timer.remaining);
@@ -220,6 +379,10 @@ $('startCircuit').addEventListener('click',()=>{
 
 function stopTick(){if(timer.handle!==null){clearInterval(timer.handle);timer.handle=null}}
 function resetTimer(){stopTick();const segments=buildSegments();timer={running:false,remaining:segments.reduce((n,s)=>n+s.seconds,0),deadline:0,segments,segmentIndex:0,segmentRemaining:segments[0]?.seconds||0,segmentDeadline:0,handle:null};
+ timer.warmupPlan =
+  segments[0]?.name === 'WARMUP'
+    ? buildWarmupPlan(segments[0].seconds)
+    : [];                     
 $('timerToggle').textContent=mode()==='circuit'
   ?(segments[0]?.name==='WARMUP'?'Start Warmup':'Start Circuit')
   :'Start';
@@ -254,5 +417,7 @@ $('completeActiveWorkout').addEventListener('click',()=>{
   saveWorkout(activeWorkout);
 });
 
-configureInputs();render();loadSheet();
+configureInputs();
+render();
+loadWarmupLibrary().then(() => loadSheet());
 </script></body></html>
