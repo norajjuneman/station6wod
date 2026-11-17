@@ -29,6 +29,7 @@
 <div class="time" id="timerDisplay" aria-live="off">15:00</div>
 <div class="timer-state" id="timerState">Ready</div><div class="row"><button class="btn" id="timerToggle">Start</button><button class="btn secondary" id="timerReset">Reset</button></div>
 <button class="btn secondary wide hide" id="startCircuit" type="button">Skip Warmup / Start Circuit</button>
+  <button class="btn secondary wide" id="soundToggle" type="button" aria-pressed="true">🔊 Sound: ON</button>
 <p class="small muted" id="timerHint">The timer runs while this tab remains open. Keep your screen awake during workouts.
 </p></div>
 <div id="activeWorkoutPanel" class="panel hide">
@@ -49,6 +50,114 @@
 const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vQUyytxzJC7KkFtwbf8JGkEbIJzetL6e506swvrTXk-rBi8mtRk1KVEmKigCfOj9fNj8dl4SMBCaBO5/pub?gid=0&single=true&output=csv';
 const mobility=[['Neck','Gentle neck turns','5 per side'],['Shoulders','Wall slides','10 reps'],['Upper back','Open-book rotations','8 per side'],['Chest','Doorway pec stretch','30 seconds per side'],['Wrists','Wrist circles','10 each direction'],['Lower back','Cat-cow','8–10 reps'],['Hips','90/90 hip switches','8 per side'],['Hip flexors','Half-kneeling hip flexor stretch','30 seconds per side'],['Glutes','Figure-four stretch','30 seconds per side'],['Hamstrings','Standing hamstring stretch','30 seconds per side'],['Quadriceps','Standing quad stretch','30 seconds per side'],['Knees','Controlled knee extensions','10 per side'],['Ankles','Knee-to-wall rocks','10 per side'],['Calves','Wall calf stretch','30 seconds per side']];
 const $=id=>document.getElementById(id);
+  // Audible timer alerts
+let audioContext = null;
+let soundEnabled = true;
+
+try {
+  soundEnabled =
+    localStorage.getItem('stationWodSound') !== 'off';
+} catch {}
+
+function unlockAudio() {
+  if (!soundEnabled) return;
+
+  try {
+    const AudioClass =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioClass) return;
+
+    if (!audioContext) {
+      audioContext = new AudioClass();
+    }
+
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().catch(() => {});
+    }
+  } catch {}
+}
+
+function playTone(frequency, duration, delay = 0) {
+  if (!soundEnabled || !audioContext) return;
+
+  try {
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const start = audioContext.currentTime + delay;
+
+    oscillator.type = 'sine';
+    oscillator.frequency.value = frequency;
+
+    gain.gain.setValueAtTime(0.2, start);
+    gain.gain.exponentialRampToValueAtTime(
+      0.001, start + duration
+    );
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    oscillator.start(start);
+    oscillator.stop(start + duration);
+  } catch {}
+}
+function updateSoundButton() {
+  $('soundToggle').textContent = soundEnabled
+    ? '🔊 Sound: ON'
+    : '🔇 Sound: OFF';
+
+  $('soundToggle').setAttribute(
+    'aria-pressed', String(soundEnabled)
+  );
+}
+
+$('soundToggle').addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+
+  try {
+    localStorage.setItem(
+      'stationWodSound',
+      soundEnabled ? 'on' : 'off'
+    );
+  } catch {}
+
+  updateSoundButton();
+
+  if (soundEnabled) {
+    unlockAudio();
+    playAlert('movement');
+  }
+});
+
+updateSoundButton();
+function playAlert(type) {
+  if (!soundEnabled) return;
+
+  switch (type) {
+    case 'movement':
+      playTone(880, 0.18);
+      break;
+
+    case 'work':
+      playTone(1047, 0.25);
+      break;
+
+    case 'rest':
+      playTone(440, 0.25);
+      break;
+
+    case 'warmupComplete':
+      playTone(660, 0.25);
+      playTone(880, 0.35, 0.3);
+      break;
+
+    case 'complete':
+      playTone(660, 0.25);
+      playTone(880, 0.25, 0.3);
+      playTone(1047, 0.5, 0.6);
+      break;
+  }
+}
 const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateISO=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 function parseDate(v){v=String(v||'').trim();if(/^\d{4}-\d{2}-\d{2}$/.test(v)){const d=new Date(v+'T12:00:00');return !isNaN(d)&&dateISO(d)===v?v:''}const m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);return m?parseDate(`${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`):''}
@@ -319,7 +428,15 @@ function drawWarmupPlan() {
     elapsed -= plan[index].seconds;
     index++;
   }
+  if (
+    timer.running &&
+    timer.lastWarmupIndex !== undefined &&
+    timer.lastWarmupIndex !== index
+  ) {
+    playAlert('movement');
+  }
 
+  timer.lastWarmupIndex = index;
   const current = plan[index];
   const next = plan[index + 1];
 
@@ -388,7 +505,33 @@ $('timerToggle').textContent=mode()==='circuit'
   :'Start';
 drawTimer()
 }
-function tick(){if(!timer.running)return;const now=Date.now();timer.remaining=Math.max(0,Math.ceil((timer.deadline-now)/1000));if(mode()==='tabata'||mode()==='intervals'){let left=timer.remaining;let index=timer.segments.length-1;for(let i=0;i<timer.segments.length;i++){const after=timer.segments.slice(i+1).reduce((n,s)=>n+s.seconds,0);if(left>after){index=i;timer.segmentRemaining=left-after;break}}timer.segmentIndex=index;if(!left)timer.segmentRemaining=0}drawTimer();if(!timer.remaining){timer.running=false;stopTick();
+function tick(){if(!timer.running)return;const now=Date.now();timer.remaining=Math.max(0,Math.ceil((timer.deadline-now)/1000));if(mode()==='tabata'||mode()==='intervals'){let left=timer.remaining;let index=timer.segments.length-1;for(let i=0;i<timer.segments.length;i++){const after=timer.segments.slice(i+1).reduce((n,s)=>n+s.seconds,0);if(left>after){index=i;timer.segmentRemaining=left-after;break}}if (left > 0 && index !== timer.segmentIndex) {
+  const phase = timer.segments[index]?.name || '';
+
+  playAlert(
+    phase.startsWith('WORK') ? 'work' : 'rest'
+  );
+}
+
+timer.segmentIndex = index;if(!left)timer.segmentRemaining=0}
+
+if (mode() === 'emom' && timer.remaining > 0) {
+  const elapsed =
+    timer.segments[0].seconds - timer.remaining;
+
+  const minute = Math.floor(elapsed / 60);
+
+  if (
+    timer.lastMinute !== undefined &&
+    timer.lastMinute !== minute
+  ) {
+    playAlert('movement');
+  }
+
+  timer.lastMinute = minute;
+}
+
+drawTimer();if(!timer.remaining){timer.running=false;stopTick();
 
 $('timerToggle').textContent=mode()==='circuit'
   ?(timer.segments[0]?.name==='WARMUP'?'Restart Warmup':'Restart Circuit')
@@ -399,8 +542,17 @@ if(mode()==='circuit'){
 }else{
   $('timerState').textContent='Finished';
 }
+  if (
+  mode() === 'circuit' &&
+  timer.segments[0]?.name === 'WARMUP'
+) {
+  playAlert('warmupComplete');
+} else {
+  playAlert('complete');
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
 try{navigator.vibrate?.([180,100,180])}catch{}}}
-function toggleTimer(){if(timer.running){tick();timer.running=false;stopTick();$('timerToggle').textContent='Resume';drawTimer();return}
+function toggleTimer(){
+  unlockAudio();if(timer.running){tick();timer.running=false;stopTick();$('timerToggle').textContent='Resume';drawTimer();return}
 if(!timer.remaining){
   if(mode()==='circuit'&&timer.segments[0]?.name==='CIRCUIT'){
     $('startCircuit').click();
@@ -408,6 +560,11 @@ if(!timer.remaining){
   }
   resetTimer();
 }
+if (!timer.hasStarted) {
+  timer.hasStarted = true;
+  playAlert('work');
+}
+
 timer.running=true;timer.deadline=Date.now()+timer.remaining*1000;$('timerToggle').textContent='Pause';timer.handle=setInterval(tick,200);tick()}
 $('timerMode').addEventListener('change',configureInputs);
 ['duration','timerRounds','workSec','restSec','warmupMinutes']
