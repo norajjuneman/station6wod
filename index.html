@@ -5,7 +5,14 @@
 </style></head><body><main><header class="top"><div class="brand"><span class="accent">◆</span> STATION WOD</div><div class="eyebrow muted">CREW FITNESS</div></header>
 <section id="today"><div class="hero"><div class="eyebrow accent" id="dateLabel"></div><h1 id="workoutTitle">Loading workouts…</h1><div class="muted" id="workoutFocus"></div><div id="pills"></div><div class="status muted" id="syncStatus" role="status">Connecting to Google Sheets…</div><button class="btn wide" id="startWorkout">START WORKOUT</button></div><div class="panel"><h2>Today's Circuit</h2><div id="exercises"></div></div><button class="btn secondary wide" id="completeWorkout">✓ Mark workout complete</button></section>
 <section id="week" class="hide"><h1>4-Week Workout Planner</h1><p class="muted">Plan as many weeks ahead as you like in Google Sheets. Tap a day to preview its workout.</p><div class="row"><button class="btn secondary" id="previousWeeks" type="button">← Previous 4 weeks</button><button class="btn secondary" id="nextWeeks" type="button">Next 4 weeks →</button></div><p class="muted small" id="calendarRange"></p><div id="weekItems"></div></section>
-<section id="timers" class="hide"><h1>Workout Timers</h1><p class="muted">Choose a timer and adjust the settings for your crew.</p><div class="panel"><label for="timerMode">Timer type</label><select id="timerMode">
+<section id="timers" class="hide">
+<h1>Workout Timers</h1>
+<div id="activeWorkoutHeader" class="panel hide">
+  <div class="eyebrow accent">CURRENT WORKOUT</div>
+  <h2 id="activeWorkoutTitle"></h2>
+  <div id="activeWorkoutDetails" class="muted small"></div>
+</div>
+<p class="muted">Choose a timer and adjust the settings for your crew.</p><div class="panel"><label for="timerMode">Timer type</label><select id="timerMode">
 <option value="countdown">Countdown</option><option value="circuit">Circuit</option>
 <option value="emom">EMOM — Every Minute on the Minute</option><option value="amrap">AMRAP — As Many Rounds As Possible</option><option value="tabata">Tabata — Work / Rest</option><option value="intervals">Custom Intervals</option></select><div class="row"><div><label for="duration">Duration (minutes)</label><input id="duration" type="number" min="1" max="180" value="15"></div><div id="roundsWrap" class="hide"><label for="timerRounds">Rounds</label><input id="timerRounds" type="number" min="1" max="100" value="8"></div></div><div id="workRest" class="hide row"><div><label for="workSec">Work (seconds)</label><input id="workSec" type="number" min="1" max="600" value="20"></div><div><label for="restSec">Rest (seconds)</label><input id="restSec" type="number" min="0" max="600" value="10"></div></div>
 <div id="warmupWrap" class="hide">
@@ -16,8 +23,16 @@
 <div class="time" id="timerDisplay" aria-live="off">15:00</div>
 <div class="timer-state" id="timerState">Ready</div><div class="row"><button class="btn" id="timerToggle">Start</button><button class="btn secondary" id="timerReset">Reset</button></div>
 <button class="btn secondary wide hide" id="startCircuit" type="button">Skip Warmup / Start Circuit</button>
-<p class="small muted" id="timerHint">The timer runs while this tab remains open. Keep your screen awake during workouts.</p></div></section>
-<section id="mobility" class="hide"><h1>Mobility Library</h1><p class="muted">Move gently and avoid painful ranges of motion.</p><div id="mobilityItems"></div></section>
+<p class="small muted" id="timerHint">The timer runs while this tab remains open. Keep your screen awake during workouts.
+</p></div>
+<div id="activeWorkoutPanel" class="panel hide">
+  <h2>Workout Exercises</h2>
+  <div id="activeWorkoutExercises"></div>
+  <button class="btn secondary wide" id="completeActiveWorkout" type="button">✓ Mark Workout Complete</button>
+</div>
+</section>
+<section id="mobility"
+ class="hide"><h1>Mobility Library</h1><p class="muted">Move gently and avoid painful ranges of motion.</p><div id="mobilityItems"></div></section>
 <section id="history" class="hide"><h1>My History</h1><p class="muted">Saved on this device only. Other crew members have their own history.</p><div id="historyItems"></div></section></main>
 <nav class="nav" aria-label="Main navigation"><div class="nav-inner"><button class="active" data-tab="today">TODAY</button><button data-tab="week">WEEK</button><button data-tab="timers">TIMERS</button><button data-tab="mobility">MOBILITY</button><button data-tab="history">HISTORY</button></div></nav>
 <script>
@@ -53,7 +68,31 @@ function formatRounds(value){
 
 const validModes=new Set(["countdown","circuit","emom","amrap","tabata","intervals"]);
 
-function applyWorkoutTimer(w){if(!w)return;const selected=validModes.has(w.format)?w.format:"countdown";$("timerMode").value=selected;configureInputs();
+function showActiveWorkout(w){
+  $('activeWorkoutHeader').classList.toggle('hide',!w);
+  $('activeWorkoutPanel').classList.toggle('hide',!w);
+  if(!w)return;
+
+  $('activeWorkoutTitle').textContent=formatTitle(w.title);
+
+  $('activeWorkoutDetails').textContent=[
+    formatRounds(w.rounds),
+    w.restSeconds>0?w.restSeconds+' sec rest recommended':'',
+    w.equipment
+  ].filter(Boolean).join(' · ');
+
+  $('activeWorkoutExercises').innerHTML=w.exercises.map(([name,dose])=>
+    `<div class="exercise">
+      <strong>${escapeHTML(name)}</strong>
+      <span class="muted">${escapeHTML(dose)}</span>
+    </div>`
+  ).join('');
+}
+
+
+
+function applyWorkoutTimer(w){if(!w)return;showActiveWorkout(w);
+const selected=validModes.has(w.format)?w.format:"countdown";$("timerMode").value=selected;configureInputs();
 $("warmupMinutes").value=selected==="circuit"?3:0;
 $("duration").value=selected==="circuit"?Math.max(1,w.minutes-3):w.minutes;
 if(selected==="tabata"||selected==="intervals"){if(w.timerRounds>0)$("timerRounds").value=w.timerRounds;if(w.workSeconds>0)$("workSec").value=w.workSeconds;if(w.restSeconds>=0&&Number.isFinite(w.restSeconds))$("restSec").value=w.restSeconds}resetTimer()}
@@ -182,5 +221,10 @@ timer.running=true;timer.deadline=Date.now()+timer.remaining*1000;$('timerToggle
 $('timerMode').addEventListener('change',configureInputs);
 ['duration','timerRounds','workSec','restSec','warmupMinutes']
 .forEach(id=>$(id).addEventListener('change',resetTimer));$('timerToggle').addEventListener('click',toggleTimer);$('timerReset').addEventListener('click',resetTimer);$('startWorkout').addEventListener('click',()=>{if(!today)return;openTab('timers');applyWorkoutTimer(today)});
+  
+$('completeActiveWorkout').addEventListener('click',()=>{
+  $('completeWorkout').click();
+});
+
 configureInputs();render();loadSheet();
 </script></body></html>
