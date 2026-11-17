@@ -46,7 +46,9 @@ const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<
 const dateISO=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 function parseDate(v){v=String(v||'').trim();if(/^\d{4}-\d{2}-\d{2}$/.test(v)){const d=new Date(v+'T12:00:00');return !isNaN(d)&&dateISO(d)===v?v:''}const m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);return m?parseDate(`${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`):''}
 function csvRows(raw){const rows=[];let row=[],field='',quoted=false;for(let i=0;i<raw.length;i++){const c=raw[i];if(c==='"'){if(quoted&&raw[i+1]==='"'){field+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){row.push(field);field=''}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&raw[i+1]==='\n')i++;row.push(field);if(row.some(x=>x.trim()))rows.push(row);row=[];field=''}else field+=c}row.push(field);if(row.some(x=>x.trim()))rows.push(row);return rows}
-let scheduled=[],today=null;
+
+let scheduled=[],today=null,activeWorkout=null;
+
 const todayKey=()=>dateISO(new Date());
 let calendarOffset=0;
 
@@ -68,7 +70,10 @@ function formatRounds(value){
 
 const validModes=new Set(["countdown","circuit","emom","amrap","tabata","intervals"]);
 
+
 function showActiveWorkout(w){
+  activeWorkout=w;
+
   $('activeWorkoutHeader').classList.toggle('hide',!w);
   $('activeWorkoutPanel').classList.toggle('hide',!w);
   if(!w)return;
@@ -117,8 +122,20 @@ $('weekItems').innerHTML=Array.from({length:28},(_,i)=>{const d=new Date(base);d
 ${w?`${w.format==='circuit'?`<p class="muted small">${escapeHTML(formatTiming(w))}</p>`:''}<p class="muted small">Equipment:
  ${escapeHTML(w.equipment)} ·
 ${escapeHTML(formatRounds(w.rounds))}${w.restSeconds>0?' · '+w.restSeconds+' sec rest':''}
-</p>${w.exercises.map(([name,dose])=>`<div class="exercise"><strong>${escapeHTML(name)}</strong><span class="muted">${escapeHTML(dose)}</span></div>`).join('')}`:'<p class="muted small">Add this date to your Google Sheet to schedule a workout.</p>'}</details>`}).join('');
+</p>${w.exercises.map(([name,dose])=>`<div class="exercise"><strong>${escapeHTML(name)}</strong><span class="muted">${escapeHTML(dose)}</span></div>`).join('')}`
++`<button class="btn wide" type="button" data-start-date="${escapeHTML(w.date)}">START WORKOUT</button>`:'<p class="muted small">Add this date to your Google Sheet to schedule a workout.</p>'}</details>`}).join('');
 }
+  
+$('weekItems').addEventListener('click',e=>{
+  const button=e.target.closest('[data-start-date]');
+  if(!button)return;
+  const w=scheduled.find(x=>x.date===button.dataset.startDate);
+  if(!w)return;
+  openTab('timers');
+  applyWorkoutTimer(w);
+});
+
+
 $('previousWeeks').addEventListener('click',()=>{calendarOffset--;renderCalendar()});
 $('nextWeeks').addEventListener('click',()=>{calendarOffset++;renderCalendar()});
 async function loadSheet(){const status=$('syncStatus');status.textContent='Connecting to Google Sheets…';status.className='status muted';try{const res=await fetch(SHEET_CSV_URL,{cache:'no-store'});if(!res.ok)throw Error('Sheet request failed (HTTP '+res.status+')');const rows=csvRows(await res.text());if(rows.length<2)throw Error('The published sheet has no workout rows');const headers=rows.shift().map(h=>h.trim().replace(/^\uFEFF/,'').toLowerCase());const required=['date','title','focus','minutes','equipment','rounds','exercises'];if(required.some(h=>!headers.includes(h)))throw Error('Expected columns: '+required.join(', '));scheduled=rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||'').trim()]))).filter(r=>r.title).map(r=>{
@@ -127,7 +144,18 @@ return {date:parseDate(r.date),title:r.title,focus:r.focus,minutes:Number(r.minu
 }).filter(w=>w.date&&w.minutes>0&&w.minutes<=180).sort((a,b)=>a.date.localeCompare(b.date));if(!scheduled.length)throw Error('No valid dated workouts; check Date and Minutes');status.textContent=`Google Sheets connected · ${scheduled.length} workouts loaded`;status.className='status good';render()}catch(err){status.textContent='Google Sheets not loaded: '+err.message;status.className='status bad';console.warn('Station WOD:',err)}}
 function readHistory(){try{const value=JSON.parse(localStorage.getItem('stationWodHistory')||'[]');return Array.isArray(value)?value:[]}catch{return []}}
 function renderHistory(){const records=readHistory();$('historyItems').innerHTML=records.length?records.map(r=>`<div class="panel"><strong>${escapeHTML(r.title)}</strong><div class="muted small">${escapeHTML(r.date)}</div></div>`).join(''):'<div class="panel">No workouts completed yet.</div>'}
-$('completeWorkout').addEventListener('click',()=>{if(!today)return;const records=readHistory(),key=todayKey();if(!records.some(r=>r.date===key&&r.title===today.title)){records.unshift({date:key,title:today.title});try{localStorage.setItem('stationWodHistory',JSON.stringify(records))}catch{alert('Unable to save history on this device.');return}}renderHistory();alert('Workout saved on this device!')});
+
+function saveWorkout(w){
+  if(!w)return;
+  const records=readHistory(),key=todayKey();
+  if(!records.some(r=>r.date===key&&r.title===w.title)){
+    records.unshift({date:key,title:w.title});
+    try{localStorage.setItem('stationWodHistory',JSON.stringify(records))}
+    catch{alert('Unable to save history on this device.');return;}
+  }
+  renderHistory();alert('Workout saved on this device!');
+}
+$('completeWorkout').addEventListener('click',()=>saveWorkout(today));
 $('mobilityItems').innerHTML=mobility.map(([area,move,dose])=>`<div class="panel"><div class="tag">${escapeHTML(area)}</div><h3>${escapeHTML(move)}</h3><div class="muted">${escapeHTML(dose)}</div></div>`).join('');
 function openTab(name){document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hide',s.id!==name));document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));window.scrollTo(0,0)}
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>openTab(b.dataset.tab)));
@@ -223,7 +251,7 @@ $('timerMode').addEventListener('change',configureInputs);
 .forEach(id=>$(id).addEventListener('change',resetTimer));$('timerToggle').addEventListener('click',toggleTimer);$('timerReset').addEventListener('click',resetTimer);$('startWorkout').addEventListener('click',()=>{if(!today)return;openTab('timers');applyWorkoutTimer(today)});
   
 $('completeActiveWorkout').addEventListener('click',()=>{
-  $('completeWorkout').click();
+  saveWorkout(activeWorkout);
 });
 
 configureInputs();render();loadSheet();
