@@ -27,9 +27,11 @@ select,input{background:#141a20;border-color:#52616e;min-height:46px}.time{font-
 
 /* Recovery dashboard */
 .hero[data-state="recovery"]{border-top-color:#79c5a1}.hero[data-state="recovery"] .eyebrow{color:#79c5a1}.recovery-label{color:#79c5a1;font-size:13px;margin-top:16px;font-weight:700}.dashboard-heading{margin:27px 0 12px;font-size:19px}.next-card{border-left:4px solid var(--ember)}.next-card[data-kind="power"]{border-left-color:#f07870}.next-card[data-kind="endurance"]{border-left-color:#75b7e4}.next-card[data-kind="mobility"]{border-left-color:#79c5a1}.next-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:18px 0}.next-stats div{background:#141a20;border-radius:10px;padding:12px 8px;text-align:center}.next-stats strong{display:block;font-size:19px}.next-stats small{color:#b0bdc9;font-size:11px}.ready-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ready-link{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;margin:0;color:inherit;font:inherit;cursor:pointer;min-width:0}.ready-link svg{width:25px;height:25px;color:var(--ember)}.ready-link:first-child svg{color:#79c5a1}.ready-link span{font-size:12px;color:#b0bdc9}.status.good{color:#a9b7c2;font-size:11px}.nav{z-index:20}
+
+.month-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.month-head h2{margin:0;text-align:center}.month-head button{font-size:24px;padding:5px 15px;min-height:44px}.month-today{display:block;margin:12px auto;font-size:12px;min-height:40px}.month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.day-heading{text-align:center;font-size:11px;color:#9cabb8;padding:5px 0}.month-day{position:relative;min-width:0;min-height:46px;border:1px solid transparent;border-radius:9px;background:#141b22;color:#dce5ed;font:inherit;font-weight:650;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px}.month-day i{width:12px;height:4px;border-radius:5px;background:var(--day-color,transparent)}.month-day b{position:absolute;top:2px;right:3px;font-size:11px;color:#79c5a1}.month-day.current{border-color:#aebbc7}.month-day[aria-pressed=true]{background:#ff9d32;color:#101419;border-color:#ff9d32}.month-day[aria-pressed=true] i{background:#101419}.month-day[aria-pressed=true] b{color:#101419}.month-day[data-kind=off]{opacity:.75}.month-day[aria-pressed=true]{opacity:1}.month-grid [data-kind=strength],.month-legend [data-kind=strength]{--day-color:#ff9d32}.month-grid [data-kind=power],.month-legend [data-kind=power]{--day-color:#f07870}.month-grid [data-kind=endurance],.month-legend [data-kind=endurance]{--day-color:#75b7e4}.month-grid [data-kind=mobility],.month-legend [data-kind=mobility]{--day-color:#79c5a1}.month-legend{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:17px;font-size:11px;color:#c3ced7}.month-legend [data-kind]::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--day-color);margin-right:5px}@media(max-width:380px){.month-panel{padding:11px}.month-grid{gap:3px}.month-day{min-height:41px}.day-heading{font-size:10px}}
 </style></head><body><main><header class="top"><div class="brand"><svg viewBox="0 0 80 80" aria-hidden="true"><path d="M40 3 72 19V48Q65 66 40 77 15 66 8 48V19Z" fill="none" stroke="#ff9d32" stroke-width="3"/><path d="M40 14C45 29 59 31 58 46 58 58 49 65 40 65 27 65 20 55 22 45 23 39 29 33 32 29 30 42 38 43 40 35 43 28 42 20 40 14Z" fill="#ff9d32"/><path d="M40 40C44 48 49 50 46 57Q40 66 34 57 29 50 40 40" fill="#101419"/></svg><span>STATION WOD<small>TRAIN FOR THE CALL.</small></span></div><div class="eyebrow muted">CREW FITNESS</div></header>
 <section id="today"><div class="hero" id="todayHero"><div class="eyebrow accent" id="dateLabel"></div><h1 id="workoutTitle">Loading workouts…</h1><div class="muted" id="workoutFocus"></div><div id="pills"></div><div class="status muted" id="syncStatus" role="status">Connecting to Google Sheets…</div><button class="btn wide" id="startWorkout">START WORKOUT</button></div><div class="panel" id="todayCircuit"><h2>Today's Circuit</h2><div id="exercises"></div></div><button class="btn secondary wide" id="completeWorkout">✓ Mark workout complete</button><div id="recoveryDashboard" class="hide"><h2 class="dashboard-heading">Next scheduled workout</h2><div class="panel next-card" id="nextWorkoutCard"></div><h2 class="dashboard-heading">Stay ready</h2><div class="ready-grid"><button type="button" class="panel ready-link" id="recoveryMobility"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12h5l3-8 4 16 3-8h5"/></svg><strong>Mobility</strong><span>Active recovery</span></button><button type="button" class="panel ready-link" id="recoveryTimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="14" r="8"/><path d="M12 10v4l3 2M9 2h6"/></svg><strong>Quick timer</strong><span>Train independently</span></button></div></div></section>
-<section id="week" class="hide"><h1>4-Week Workout Planner</h1><p class="muted">Plan as many weeks ahead as you like in Google Sheets. Tap a day to preview its workout.</p><div class="row"><button class="btn secondary" id="previousWeeks" type="button">← Previous 4 weeks</button><button class="btn secondary" id="nextWeeks" type="button">Next 4 weeks →</button></div><p class="muted small" id="calendarRange"></p><div id="weekItems"></div></section>
+<section id="week" class="hide"><h1>Training Schedule</h1><p class="muted">48/96 duty rotation · Select a date to preview training.</p><div class="panel month-panel"><div class="month-head"><button class="btn secondary" id="previousWeeks" type="button" aria-label="Previous month">‹</button><h2 id="calendarRange" aria-live="polite"></h2><button class="btn secondary" id="nextWeeks" type="button" aria-label="Next month">›</button></div><button class="btn secondary month-today" id="calendarToday" type="button">Today</button><div id="monthGrid" class="month-grid" role="group" aria-label="Calendar dates"></div><div class="month-legend"><span data-kind="strength">Strength</span><span data-kind="power">Power</span><span data-kind="endurance">Endurance</span><span data-kind="mobility">Mobility</span><span>✓ Completed</span></div></div><div id="weekItems"></div></section>
 <section id="timers" class="hide">
 <h1>Workout Timers</h1>
 <div id="activeWorkoutHeader" class="panel hide">
@@ -80,7 +82,7 @@ select,input{background:#141a20;border-color:#52616e;min-height:46px}.time{font-
 <section id="mobility"
  class="hide"><h1>Mobility Library</h1><p class="muted">Move gently and avoid painful ranges of motion.</p><div id="mobilityItems"></div></section>
 <section id="history" class="hide"><h1>My History</h1><p class="muted">Saved on this device only. Other crew members have their own history.</p><div id="historyItems"></div></section></main>
-<nav class="nav" aria-label="Main navigation"><div class="nav-inner"><button class="active" data-tab="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v11h-6v-7H9v7H3z"/></svg><span>TODAY</span></button><button data-tab="week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></svg><span>WEEK</span></button><button data-tab="timers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v5l3 2M9 2h6"/></svg><span>TIMERS</span></button><button data-tab="mobility"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h5l3-8 4 16 3-8h5"/></svg><span>MOBILITY</span></button><button data-tab="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v17h17M9 15v-4m5 4V7m5 8V4"/></svg><span>HISTORY</span></button></div></nav>
+<nav class="nav" aria-label="Main navigation"><div class="nav-inner"><button class="active" data-tab="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v11h-6v-7H9v7H3z"/></svg><span>TODAY</span></button><button data-tab="week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/></svg><span>CALENDAR</span></button><button data-tab="timers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v5l3 2M9 2h6"/></svg><span>TIMERS</span></button><button data-tab="mobility"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h5l3-8 4 16 3-8h5"/></svg><span>MOBILITY</span></button><button data-tab="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v17h17M9 15v-4m5 4V7m5 8V4"/></svg><span>HISTORY</span></button></div></nav>
 <script>
 'use strict';
 // Google Sheets: File > Share > Publish to web > CSV. The first sheet must have
@@ -275,7 +277,8 @@ function renderExercise([name, dose]) {
 let scheduled=[],today=null,activeWorkout=null;
 
 const todayKey=()=>dateISO(new Date());
-let calendarOffset=0;
+let selectedDate=todayKey();
+let monthView=new Date(new Date().getFullYear(),new Date().getMonth(),1,12);
 
 function formatTiming(w){
   if(w.format !== 'circuit') return '';
@@ -360,27 +363,30 @@ function renderNextWorkout(key){
  const date=new Date(w.date+'T12:00:00').toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
  card.innerHTML=`<div class="tag">${escapeHTML(date)}</div><h2 style="margin-top:10px">${escapeHTML(formatTitle(w.title))}</h2><div class="next-stats"><div><strong>${w.minutes} min</strong><small>Duration</small></div><div><strong>${w.exercises.length}</strong><small>Exercises</small></div><div><strong>${escapeHTML(w.rounds||'—')}</strong><small>Rounds</small></div></div><button class="btn wide" type="button" id="previewNextWorkout">PREVIEW WORKOUT</button>`;
  $('previewNextWorkout').addEventListener('click',()=>{
- const base=new Date();base.setHours(12,0,0,0);
- const days=Math.round((Date.parse(w.date+'T12:00:00')-base.getTime())/86400000);
- calendarOffset=Math.floor(days/28);renderCalendar();openTab('week');
- const target=$('weekItems').querySelector(`[data-start-date="${w.date}"]`)?.closest('details');
- if(target){target.open=true;target.scrollIntoView({block:'start'});}
+ selectCalendarDate(w.date);openTab('week');
  });
 }
 $('recoveryMobility').addEventListener('click',()=>openTab('mobility'));
 $('recoveryTimer').addEventListener('click',()=>openTab('timers'));
+function calendarKind(w){return !w?'off':/power/i.test(w.focus)?'power':/mobility|recovery/i.test(w.focus)?'mobility':/endurance/i.test(w.focus)?'endurance':'strength';}
+function selectCalendarDate(key){selectedDate=key;const d=new Date(key+'T12:00:00');monthView=new Date(d.getFullYear(),d.getMonth(),1,12);renderCalendar();}
 function renderCalendar(){
-const base=new Date();base.setHours(12,0,0,0);base.setDate(base.getDate()+calendarOffset*28);
-const end=new Date(base);end.setDate(base.getDate()+27);
-$('calendarRange').textContent=base.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' – '+end.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
-$('weekItems').innerHTML=Array.from({length:28},(_,i)=>{const d=new Date(base);d.setDate(base.getDate()+i);const key=dateISO(d),w=scheduled.find(x=>x.date===key);const label=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});return `<details class="panel" data-kind="${!w?'off':/power/i.test(w.focus)?'power':/mobility|recovery/i.test(w.focus)?'mobility':/endurance/i.test(w.focus)?'endurance':'strength'}" ${key===todayKey()?'open':''}><summary style="cursor:pointer"><span class="tag">${escapeHTML(label)}</span><h3>${escapeHTML(w?formatTitle(w.title):'Not scheduled')}</h3><span class="muted small">${w?escapeHTML(w.focus)+' · '+w.minutes+' min · '+escapeHTML(w.format.toUpperCase()):'No workout programmed'}</span></summary>
-${w?`${w.format==='circuit'?`<p class="muted small">${escapeHTML(formatTiming(w))}</p>`:''}<p class="muted small">Equipment:
- ${escapeHTML(w.equipment)} ·
-${escapeHTML(formatRounds(w.rounds))}${w.restSeconds>0?' · '+w.restSeconds+' sec rest':''}
-</p>${w.exercises.map(renderExercise).join('')}`
-+`<button class="btn wide" type="button" data-start-date="${escapeHTML(w.date)}">START WORKOUT</button>`:'<p class="muted small">Add this date to your Google Sheet to schedule a workout.</p>'}</details>`}).join('');
+ const y=monthView.getFullYear(),m=monthView.getMonth(),first=new Date(y,m,1,12),count=new Date(y,m+1,0,12).getDate(),records=readHistory();
+ const completed=w=>w&&records.some(r=>r.date===w.date&&r.title===w.title&&r.status!=='partial');
+ $('calendarRange').textContent=first.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+ const cells=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<span class="day-heading">${d}</span>`);
+ for(let i=0;i<first.getDay();i++)cells.push('<span aria-hidden="true"></span>');
+ for(let i=1;i<=count;i++){
+ const d=new Date(y,m,i,12),key=dateISO(d),w=scheduled.find(x=>x.date===key),done=completed(w),label=d.toLocaleDateString(undefined,{dateStyle:'full'})+(w?', '+formatTitle(w.title):', no scheduled workout')+(done?', completed':'');
+ cells.push(`<button type="button" class="month-day${key===todayKey()?' current':''}" data-date="${key}" data-kind="${calendarKind(w)}" aria-label="${escapeHTML(label)}" aria-pressed="${key===selectedDate}"><span>${i}</span><i aria-hidden="true"></i>${done?'<b aria-hidden="true">✓</b>':''}</button>`);
+ }
+ $('monthGrid').innerHTML=cells.join('');
+ const w=scheduled.find(x=>x.date===selectedDate),d=new Date(selectedDate+'T12:00:00');
+ $('weekItems').innerHTML=`<div class="eyebrow muted">${escapeHTML(d.toLocaleDateString(undefined,{dateStyle:'full'}))}</div><div class="panel" data-kind="${calendarKind(w)}"><h2>${escapeHTML(w?formatTitle(w.title):'No workout scheduled')}</h2>${w?`<div class="muted small">${w.minutes} min · ${escapeHTML(formatRounds(w.rounds))}${w.restSeconds>0?' · '+w.restSeconds+' sec rest':''}</div>${completed(w)?'<p class="good small">✓ Completed</p>':''}<p class="muted small">${escapeHTML(formatTiming(w))}</p><p class="muted small">Equipment: ${escapeHTML(w.equipment)}</p>${w.exercises.map(renderExercise).join('')}<button class="btn wide" type="button" data-start-date="${escapeHTML(w.date)}">START WORKOUT</button>`:'<p class="muted">No programmed training for this date.</p>'}</div>`;
 }
-  
+$('monthGrid').addEventListener('click',e=>{const b=e.target.closest('[data-date]');if(b){selectCalendarDate(b.dataset.date);$('monthGrid').querySelector('[aria-pressed="true"]')?.focus();}});
+$('calendarToday').addEventListener('click',()=>selectCalendarDate(todayKey()));
+function moveMonth(delta){const d=new Date(monthView.getFullYear(),monthView.getMonth()+delta,1,12);selectCalendarDate(dateISO(d));}
 $('weekItems').addEventListener('click',e=>{
   const button=e.target.closest('[data-start-date]');
   if(!button)return;
@@ -391,8 +397,8 @@ $('weekItems').addEventListener('click',e=>{
 });
 
 
-$('previousWeeks').addEventListener('click',()=>{calendarOffset--;renderCalendar()});
-$('nextWeeks').addEventListener('click',()=>{calendarOffset++;renderCalendar()});
+$('previousWeeks').addEventListener('click',()=>{moveMonth(-1)});
+$('nextWeeks').addEventListener('click',()=>{moveMonth(1)});
 async function loadSheet(){const status=$('syncStatus');status.textContent='Connecting to Google Sheets…';status.className='status muted';try{const res=await fetch(SHEET_CSV_URL,{cache:'no-store'});if(!res.ok)throw Error('Sheet request failed (HTTP '+res.status+')');const rows=csvRows(await res.text());if(rows.length<2)throw Error('The published sheet has no workout rows');const headers=rows.shift().map(h=>h.trim().replace(/^\uFEFF/,'').toLowerCase());const required=['date','title','focus','minutes','equipment','rounds','exercises'];if(required.some(h=>!headers.includes(h)))throw Error('Expected columns: '+required.join(', '));scheduled=rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||'').trim()]))).filter(r=>r.title).map(r=>{
 const format=(r.format||r['timer type']||'countdown').toLowerCase().trim().replace(/[^a-z]/g,'');
 return {date:parseDate(r.date),title:r.title,focus:r.focus,minutes:Number(r.minutes),equipment:r.equipment,rounds:r.rounds,format:validModes.has(format)?format:'countdown',workSeconds:Number(r['work seconds']||r.workseconds||0),restSeconds:r['rest seconds']!==undefined&&r['rest seconds']!==''?Number(r['rest seconds']):NaN,timerRounds:Number(r['timer rounds']||r.timerrounds||0),exercises:r.exercises.split('|').map(x=>x.trim()).filter(Boolean).map(x=>{const parts=x.split('::');return [parts[0].trim(),parts.slice(1).join('::').trim()]})}
@@ -412,7 +418,7 @@ function saveWorkout(w){
 }
 $('completeWorkout').addEventListener('click',()=>saveWorkout(today));
 $('mobilityItems').innerHTML=mobility.map(([area,move,dose])=>`<div class="panel"><div class="tag">${escapeHTML(area)}</div><h3>${escapeHTML(move)}</h3><div class="muted">${escapeHTML(dose)}</div></div>`).join('');
-function openTab(name){document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hide',s.id!==name));document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));window.scrollTo(0,0)}
+function openTab(name){if(name==='week')renderCalendar();document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hide',s.id!==name));document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));window.scrollTo(0,0)}
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>openTab(b.dataset.tab)));
   // Automatic screen wake lock
 let wakeLock = null;
