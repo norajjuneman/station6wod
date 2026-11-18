@@ -29,6 +29,9 @@ select,input{background:#141a20;border-color:#52616e;min-height:46px}.time{font-
 .hero[data-state="recovery"]{border-top-color:#79c5a1}.hero[data-state="recovery"] .eyebrow{color:#79c5a1}.recovery-label{color:#79c5a1;font-size:13px;margin-top:16px;font-weight:700}.dashboard-heading{margin:27px 0 12px;font-size:19px}.next-card{border-left:4px solid var(--ember)}.next-card[data-kind="power"]{border-left-color:#f07870}.next-card[data-kind="endurance"]{border-left-color:#75b7e4}.next-card[data-kind="mobility"]{border-left-color:#79c5a1}.next-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:18px 0}.next-stats div{background:#141a20;border-radius:10px;padding:12px 8px;text-align:center}.next-stats strong{display:block;font-size:19px}.next-stats small{color:#b0bdc9;font-size:11px}.ready-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ready-link{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;margin:0;color:inherit;font:inherit;cursor:pointer;min-width:0}.ready-link svg{width:25px;height:25px;color:var(--ember)}.ready-link:first-child svg{color:#79c5a1}.ready-link span{font-size:12px;color:#b0bdc9}.status.good{color:#a9b7c2;font-size:11px}.nav{z-index:20}
 
 .month-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.month-head h2{margin:0;text-align:center}.month-head button{font-size:24px;padding:5px 15px;min-height:44px}.month-today{display:block;margin:12px auto;font-size:12px;min-height:40px}.month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.day-heading{text-align:center;font-size:11px;color:#9cabb8;padding:5px 0}.month-day{position:relative;min-width:0;min-height:46px;border:1px solid transparent;border-radius:9px;background:#141b22;color:#dce5ed;font:inherit;font-weight:650;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px}.month-day i{width:12px;height:4px;border-radius:5px;background:var(--day-color,transparent)}.month-day b{position:absolute;top:2px;right:3px;font-size:11px;color:#79c5a1}.month-day.current{border-color:#aebbc7}.month-day[aria-pressed=true]{background:#ff9d32;color:#101419;border-color:#ff9d32}.month-day[aria-pressed=true] i{background:#101419}.month-day[aria-pressed=true] b{color:#101419}.month-day[data-kind=off]{opacity:.75}.month-day[aria-pressed=true]{opacity:1}.month-grid [data-kind=strength],.month-legend [data-kind=strength]{--day-color:#ff9d32}.month-grid [data-kind=power],.month-legend [data-kind=power]{--day-color:#f07870}.month-grid [data-kind=endurance],.month-legend [data-kind=endurance]{--day-color:#75b7e4}.month-grid [data-kind=mobility],.month-legend [data-kind=mobility]{--day-color:#79c5a1}.month-legend{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:17px;font-size:11px;color:#c3ced7}.month-legend [data-kind]::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--day-color);margin-right:5px}@media(max-width:380px){.month-panel{padding:11px}.month-grid{gap:3px}.month-day{min-height:41px}.day-heading{font-size:10px}}
+
+/* Timer presentation */
+.timer-settings{border:1px solid #34424f;border-radius:12px;padding:12px 14px;margin-bottom:18px;background:#141a20}.timer-settings summary{cursor:pointer;font-weight:700;color:#c5d1dc;min-height:28px}.timer-dial{position:relative;isolation:isolate;width:min(100%,310px);aspect-ratio:1;margin:20px auto 8px;display:grid;place-content:center;text-align:center;background:#141a20;border-radius:50%;--ring:#ff9d32}.timer-dial svg{position:absolute;inset:0;width:100%;height:100%;z-index:-1;transform:rotate(-90deg)}.timer-dial .track{stroke:#34424f}.timer-dial .progress{stroke:var(--ring);transition:stroke-dasharray .2s linear}.timer-dial .time{font-size:clamp(36px,10vw,66px);line-height:1.15;margin:5px 0;letter-spacing:-2px}.dial-label{font-size:11px;letter-spacing:2px;font-weight:800;color:var(--ring)}.dial-caption{font-size:11px;color:#aebbc7;letter-spacing:1px}.phase-strip{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}.phase-strip>div{background:#141a20;border:1px solid #34424f;border-radius:10px;padding:11px;text-align:center;font-size:12px;color:#aebbc7}.phase-strip>div.active{border-color:#ff9d32;color:#ffbb72;background:#ff9d3210}.phase-strip>div.done{color:#79c5a1}.phase-strip strong{display:block;margin-top:5px;font-size:14px}.timer-dial[data-phase=warmup]{--ring:#79c5a1}.timer-dial[data-phase=rest]{--ring:#75b7e4}.timer-dial[data-phase=interrupted]{--ring:#f07870}.timer-state{font-size:14px}.btn.emergency{background:#a52e30;min-height:52px}.timer-utilities{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}.timer-utilities .btn{width:auto;margin:0;flex:1;font-size:13px}.timer-utilities p{flex:1;margin:0}.timer-utilities>*{min-width:120px}#activeWorkoutExercises{counter-reset:exercise}#activeWorkoutExercises .exercise-entry{position:relative;counter-increment:exercise;background:#141a20;border:1px solid #34424f;border-radius:12px;padding:14px 12px 14px 38px;margin:8px 0}#activeWorkoutExercises .exercise-entry:before{content:counter(exercise,decimal-leading-zero);position:absolute;left:11px;top:15px;font-size:11px;font-weight:800;color:#aebbc7}#warmupPlanList .exercise:has(.accent),#recoveryMoves .exercise:has(.accent){background:#ff9d3210;border-radius:7px;padding-inline:9px}#recoveryWarmupPanel .timer-dial{width:min(100%,240px);--ring:#79c5a1}.month-legend{font-size:13px;line-height:1.5}.month-legend [data-kind]::before{width:9px;height:9px}
 </style></head><body><main><header class="top"><div class="brand"><svg viewBox="0 0 80 80" aria-hidden="true"><path d="M40 3 72 19V48Q65 66 40 77 15 66 8 48V19Z" fill="none" stroke="#ff9d32" stroke-width="3"/><path d="M40 14C45 29 59 31 58 46 58 58 49 65 40 65 27 65 20 55 22 45 23 39 29 33 32 29 30 42 38 43 40 35 43 28 42 20 40 14Z" fill="#ff9d32"/><path d="M40 40C44 48 49 50 46 57Q40 66 34 57 29 50 40 40" fill="#101419"/></svg><span>STATION WOD<small>TRAIN FOR THE CALL.</small></span></div><div class="eyebrow muted">CREW FITNESS</div></header>
 <section id="today"><div class="hero" id="todayHero"><div class="eyebrow accent" id="dateLabel"></div><h1 id="workoutTitle">Loading workouts…</h1><div class="muted" id="workoutFocus"></div><div id="pills"></div><div class="status muted" id="syncStatus" role="status">Connecting to Google Sheets…</div><button class="btn wide" id="startWorkout">START WORKOUT</button></div><div class="panel" id="todayCircuit"><h2>Today's Circuit</h2><div id="exercises"></div></div><button class="btn secondary wide" id="completeWorkout">✓ Mark workout complete</button><div id="recoveryDashboard" class="hide"><h2 class="dashboard-heading">Next scheduled workout</h2><div class="panel next-card" id="nextWorkoutCard"></div><h2 class="dashboard-heading">Stay ready</h2><div class="ready-grid"><button type="button" class="panel ready-link" id="recoveryMobility"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12h5l3-8 4 16 3-8h5"/></svg><strong>Mobility</strong><span>Active recovery</span></button><button type="button" class="panel ready-link" id="recoveryTimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="14" r="8"/><path d="M12 10v4l3 2M9 2h6"/></svg><strong>Quick timer</strong><span>Train independently</span></button></div></div></section>
 <section id="week" class="hide"><h1>Training Schedule</h1><p class="muted">48/96 duty rotation · Select a date to preview training.</p><div class="panel month-panel"><div class="month-head"><button class="btn secondary" id="previousWeeks" type="button" aria-label="Previous month">‹</button><h2 id="calendarRange" aria-live="polite"></h2><button class="btn secondary" id="nextWeeks" type="button" aria-label="Next month">›</button></div><button class="btn secondary month-today" id="calendarToday" type="button">Today</button><div id="monthGrid" class="month-grid" role="group" aria-label="Calendar dates"></div><div class="month-legend"><span data-kind="strength">Strength</span><span data-kind="power">Power</span><span data-kind="endurance">Endurance</span><span data-kind="mobility">Mobility</span><span>✓ Completed</span></div></div><div id="weekItems"></div></section>
@@ -39,21 +42,21 @@ select,input{background:#141a20;border-color:#52616e;min-height:46px}.time{font-
   <h2 id="activeWorkoutTitle"></h2>
   <div id="activeWorkoutDetails" class="muted small"></div>
 </div>
-<p class="muted">Choose a timer and adjust the settings for your crew.</p><div class="panel"><label for="timerMode">Timer type</label><select id="timerMode">
+<div class="panel"><details class="timer-settings" id="timerSettings" open><summary>Timer settings</summary><label for="timerMode">Timer type</label><select id="timerMode">
 <option value="countdown">Countdown</option><option value="circuit">Circuit</option>
 <option value="emom">EMOM — Every Minute on the Minute</option><option value="amrap">AMRAP — As Many Rounds As Possible</option><option value="tabata">Tabata — Work / Rest</option><option value="intervals">Custom Intervals</option></select><div class="row"><div><label for="duration">Duration (minutes)</label><input id="duration" type="number" min="1" max="180" value="15"></div><div id="roundsWrap" class="hide"><label for="timerRounds">Rounds</label><input id="timerRounds" type="number" min="1" max="100" value="8"></div></div><div id="workRest" class="hide row"><div><label for="workSec">Work (seconds)</label><input id="workSec" type="number" min="1" max="600" value="20"></div><div><label for="restSec">Rest (seconds)</label><input id="restSec" type="number" min="0" max="600" value="10"></div></div>
 <div id="warmupWrap" class="hide">
   <label for="warmupMinutes">Warmup (minutes)</label>
   <input id="warmupMinutes" type="number" min="0" max="10" value="3">
 </div>
-<div id="warmupPlanPanel" class="panel hide">
+</details><div class="phase-strip hide" id="phaseStrip"><div id="warmupPhase">01 · WARMUP<strong id="warmupPhaseText">Ready</strong></div><div id="circuitPhase">02 · CIRCUIT<strong id="circuitPhaseText">Next</strong></div></div><div id="warmupPlanPanel" class="panel hide">
   <div class="eyebrow accent">ADAPTIVE WARMUP</div>
   <h2 id="warmupMovement">Ready</h2>
   <div id="warmupMovementTime" class="muted"></div>
   <p id="warmupNextMovement" class="small muted"></p>
   <div id="warmupPlanList"></div>
 </div>
-<div class="time" id="timerDisplay" aria-live="off">15:00</div>
+<div class="timer-dial" id="timerDisplayDial"><svg viewBox="0 0 240 240" aria-hidden="true"><circle class="track" cx="120" cy="120" r="112" fill="none" stroke-width="7"/><circle class="progress" id="timerDisplayRing" cx="120" cy="120" r="112" fill="none" stroke-width="7" stroke-linecap="round" pathLength="100" stroke-dasharray="100 100"/></svg><span class="dial-label" id="timerDisplayLabel">COUNTDOWN</span><div class="time" id="timerDisplay" aria-live="off">15:00</div><span class="dial-caption">TIME REMAINING</span></div>
 <div class="timer-state" id="timerState">Ready</div><div class="row"><button class="btn" id="timerToggle">Start</button><button class="btn secondary" id="timerReset">Reset</button></div>
 <button class="btn emergency wide hide" id="interruptWorkout" type="button">INTERRUPT — RESPONDING TO CALL</button>
 <div id="interruptionPanel" class="interruption-panel hide" role="status">
@@ -61,16 +64,16 @@ select,input{background:#141a20;border-color:#52616e;min-height:46px}.time{font-
 <p class="small muted">Reassess readiness after the call. Warm up again if needed before resuming.</p>
 <button class="btn wide" id="resumeInterrupted">Resume Workout</button>
 <button class="btn secondary wide" id="rewarmInterrupted">Warm Up Again Before Resuming</button>
-<div id="recoveryWarmupPanel" class="panel hide"><div class="eyebrow accent">RECOVERY WARMUP</div><div class="time" id="recoveryTime">03:00</div><h3 id="recoveryMovement"></h3><div id="recoveryMoves"></div><button class="btn emergency wide" id="interruptRecovery">INTERRUPT — RESPONDING TO CALL</button><button class="btn secondary wide" id="skipRecovery">Skip Recovery Warmup</button></div>
+<div id="recoveryWarmupPanel" class="panel hide"><div class="eyebrow accent">RECOVERY WARMUP</div><div class="timer-dial" id="recoveryTimeDial"><svg viewBox="0 0 240 240" aria-hidden="true"><circle class="track" cx="120" cy="120" r="112" fill="none" stroke-width="7"/><circle class="progress" id="recoveryTimeRing" cx="120" cy="120" r="112" fill="none" stroke-width="7" stroke-linecap="round" pathLength="100" stroke-dasharray="100 100"/></svg><span class="dial-label" id="recoveryTimeLabel">RECOVERY</span><div class="time" id="recoveryTime" aria-live="off">03:00</div><span class="dial-caption">TIME REMAINING</span></div><h3 id="recoveryMovement"></h3><div id="recoveryMoves"></div><button class="btn emergency wide" id="interruptRecovery">INTERRUPT — RESPONDING TO CALL</button><button class="btn secondary wide" id="skipRecovery">Skip Recovery Warmup</button></div>
 <button class="btn secondary wide" id="partialInterrupted">Save Partial Workout</button>
 <button class="btn secondary wide" id="discardInterrupted">Discard Interrupted Workout</button>
 </div>
 <button class="btn secondary wide hide" id="startCircuit" type="button">Skip Warmup / Start Circuit</button>
-  <button class="btn secondary wide" id="soundToggle" type="button" aria-pressed="true">🔊 Sound: ON</button>
+  <div class="timer-utilities"><button class="btn secondary wide" id="soundToggle" type="button" aria-pressed="true">🔊 Sound: ON</button>
   <p id="wakeLockStatus" class="small muted"
    style="text-align:center" role="status">
   Screen awake: Standby
-</p>
+</p></div>
 <p class="small muted" id="timerHint">The timer runs while this tab remains open. Keep your screen awake during workouts.
 </p></div>
 <div id="activeWorkoutPanel" class="panel hide">
@@ -327,6 +330,7 @@ function showActiveWorkout(w){
 
 
 function applyWorkoutTimer(w){if(!w)return;if(interrupted){openTab("timers");return;}showActiveWorkout(w);
+$("timerSettings").open=false;
 const selected=validModes.has(w.format)?w.format:"countdown";$("timerMode").value=selected;configureInputs();
 const isMobility = /mobility|recovery/i.test(w.focus || '');
 
@@ -382,7 +386,7 @@ function renderCalendar(){
  }
  $('monthGrid').innerHTML=cells.join('');
  const w=scheduled.find(x=>x.date===selectedDate),d=new Date(selectedDate+'T12:00:00');
- $('weekItems').innerHTML=`<div class="eyebrow muted">${escapeHTML(d.toLocaleDateString(undefined,{dateStyle:'full'}))}</div><div class="panel" data-kind="${calendarKind(w)}"><h2>${escapeHTML(w?formatTitle(w.title):'No workout scheduled')}</h2>${w?`<div class="muted small">${w.minutes} min · ${escapeHTML(formatRounds(w.rounds))}${w.restSeconds>0?' · '+w.restSeconds+' sec rest':''}</div>${completed(w)?'<p class="good small">✓ Completed</p>':''}<p class="muted small">${escapeHTML(formatTiming(w))}</p><p class="muted small">Equipment: ${escapeHTML(w.equipment)}</p>${w.exercises.map(renderExercise).join('')}<button class="btn wide" type="button" data-start-date="${escapeHTML(w.date)}">START WORKOUT</button>`:'<p class="muted">No programmed training for this date.</p>'}</div>`;
+ $('weekItems').innerHTML=`<div class="eyebrow muted">${escapeHTML(d.toLocaleDateString(undefined,{dateStyle:'full'}))}</div><div class="panel" data-kind="${calendarKind(w)}"><h2>${escapeHTML(w?formatTitle(w.title):'Recovery Day')}</h2>${w?`<div class="muted small">${w.minutes} min · ${escapeHTML(formatRounds(w.rounds))}${w.restSeconds>0?' · '+w.restSeconds+' sec rest':''}</div>${completed(w)?'<p class="good small">✓ Completed</p>':''}<p class="muted small">${escapeHTML(formatTiming(w))}</p><p class="muted small">Equipment: ${escapeHTML(w.equipment)}</p>${w.exercises.map(renderExercise).join('')}<button class="btn wide" type="button" data-start-date="${escapeHTML(w.date)}">START WORKOUT</button>`:'<p class="muted">No programmed workout on this date. Recover with purpose. Return ready.</p>'}</div>`;
 }
 $('monthGrid').addEventListener('click',e=>{const b=e.target.closest('[data-date]');if(b){selectCalendarDate(b.dataset.date);$('monthGrid').querySelector('[aria-pressed="true"]')?.focus();}});
 $('calendarToday').addEventListener('click',()=>selectCalendarDate(todayKey()));
@@ -632,7 +636,23 @@ function drawWarmupPlan() {
     `
   ).join('');
 }
+function drawTimerAppearance(){
+ const total=timer.segments.reduce((n,x)=>n+x.seconds,0), phase=timer.segments[0]?.name||mode().toUpperCase();
+ const isCircuit=mode()==='circuit', warm=isCircuit&&phase==='WARMUP', hasWarmup=isCircuit&&Number($('warmupMinutes').value)>0;
+ $('timerDisplayRing').setAttribute('stroke-dasharray',`${total?Math.max(0,Math.min(100,100*timer.remaining/total)):0} 100`);
+ const label=interrupted?'INTERRUPTED':isCircuit?phase:(mode()==='tabata'||mode()==='intervals')?(timer.segments[timer.segmentIndex]?.name||mode().toUpperCase()).split(' · ')[0]:mode().toUpperCase();
+ $('timerDisplayLabel').textContent=label;
+ $('timerDisplayDial').dataset.phase=label.toLowerCase();
+ $('phaseStrip').classList.toggle('hide',!isCircuit);
+ $('warmupPhase').classList.toggle('active',warm&&timer.remaining>0);
+ $('warmupPhase').classList.toggle('done',warm&&timer.remaining===0);
+ $('circuitPhase').classList.toggle('active',!warm&&timer.remaining>0);
+ $('circuitPhase').classList.toggle('done',!warm&&timer.remaining===0);
+ $('warmupPhaseText').textContent=!hasWarmup?'Not planned':warm?(timer.remaining===0?'Complete':interrupted?'Interrupted':timer.running?'In progress':'Ready / paused'):'Finished / skipped';
+ $('circuitPhaseText').textContent=warm?'Next':timer.remaining===0?'Complete':interrupted?'Interrupted':timer.running?'In progress':'Ready / paused';
+}
 function drawTimer(){
+  drawTimerAppearance();
   $("interruptWorkout").classList.toggle("hide",!!interrupted||!activeWorkout||!timer.remaining||!timer.hasStarted);
     drawWarmupPlan();
   if(mode()==='circuit'){
@@ -797,6 +817,7 @@ function tickRecovery(){
   if(!recoveryRun)return;
   const r=recoveryRun, left=Math.max(0,Math.ceil((r.deadline-Date.now())/1000));
   $('recoveryTime').textContent=fmt(left);
+  $('recoveryTimeRing').setAttribute('stroke-dasharray',`${100*left/180} 100`);
   if(!left){stopRecovery('Recovery warmup complete. Resume when ready');playAlert('warmupComplete');return;}
   let elapsed=180-left,index=0;
   while(index<r.plan.length-1&&elapsed>=r.plan[index].seconds){elapsed-=r.plan[index].seconds;index++;}
