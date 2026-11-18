@@ -37,6 +37,7 @@
 <p class="small muted">Reassess readiness after the call. Warm up again if needed before resuming.</p>
 <button class="btn wide" id="resumeInterrupted">Resume Workout</button>
 <button class="btn secondary wide" id="rewarmInterrupted">Warm Up Again Before Resuming</button>
+<div id="recoveryWarmupPanel" class="panel hide"><div class="eyebrow accent">RECOVERY WARMUP</div><div class="time" id="recoveryTime">03:00</div><h3 id="recoveryMovement"></h3><div id="recoveryMoves"></div><button class="btn emergency wide" id="interruptRecovery">INTERRUPT — RESPONDING TO CALL</button><button class="btn secondary wide" id="skipRecovery">Skip Recovery Warmup</button></div>
 <button class="btn secondary wide" id="partialInterrupted">Save Partial Workout</button>
 <button class="btn secondary wide" id="discardInterrupted">Discard Interrupted Workout</button>
 </div>
@@ -353,7 +354,7 @@ const format=(r.format||r['timer type']||'countdown').toLowerCase().trim().repla
 return {date:parseDate(r.date),title:r.title,focus:r.focus,minutes:Number(r.minutes),equipment:r.equipment,rounds:r.rounds,format:validModes.has(format)?format:'countdown',workSeconds:Number(r['work seconds']||r.workseconds||0),restSeconds:r['rest seconds']!==undefined&&r['rest seconds']!==''?Number(r['rest seconds']):NaN,timerRounds:Number(r['timer rounds']||r.timerrounds||0),exercises:r.exercises.split('|').map(x=>x.trim()).filter(Boolean).map(x=>{const parts=x.split('::');return [parts[0].trim(),parts.slice(1).join('::').trim()]})}
 }).filter(w=>w.date&&w.minutes>0&&w.minutes<=180).sort((a,b)=>a.date.localeCompare(b.date));if(!scheduled.length)throw Error('No valid dated workouts; check Date and Minutes');status.textContent=`Google Sheets connected · ${scheduled.length} workouts loaded`;status.className='status good';render()}catch(err){status.textContent='Google Sheets not loaded: '+err.message;status.className='status bad';console.warn('Station WOD:',err)}}
 function readHistory(){try{const value=JSON.parse(localStorage.getItem('stationWodHistory')||'[]');return Array.isArray(value)?value:[]}catch{return []}}
-function renderHistory(){const records=readHistory();$('historyItems').innerHTML=records.length?records.map(r=>`<div class="panel"><strong>${escapeHTML(r.title)}</strong><div class="muted small">${escapeHTML(r.date)}${r.status==='partial'?' · Partial / interrupted':''}</div></div>`).join(''):'<div class="panel">No workouts completed yet.</div>'}
+function renderHistory(){const records=readHistory();$('historyItems').innerHTML=records.length?records.map(r=>`<div class="panel"><strong>${escapeHTML(r.title)}</strong><div class="muted small">${escapeHTML(r.date)}${r.status==='partial'?' · Partial / interrupted':' · Completed'}</div></div>`).join(''):'<div class="panel">No workouts completed yet.</div>'}
 
 function saveWorkout(w){
   if(!w||interrupted)return;
@@ -379,7 +380,7 @@ function updateWakeLockStatus(message) {
 }
 
 async function requestWakeLock() {
-  if (!timer.running || wakeLockPending || wakeLock) return;
+  if (!isTiming() || wakeLockPending || wakeLock) return;
 
   if (!('wakeLock' in navigator)) {
     updateWakeLockStatus('Unavailable');
@@ -393,7 +394,7 @@ async function requestWakeLock() {
   try {
     const lock = await navigator.wakeLock.request('screen');
 
-    if (!timer.running) {
+    if (!isTiming()) {
       await lock.release();
       return;
     }
@@ -406,13 +407,13 @@ async function requestWakeLock() {
         wakeLock = null;
 
         updateWakeLockStatus(
-          timer.running ? 'Standby — interrupted' : 'Standby'
+          isTiming() ? 'Standby — interrupted' : 'Standby'
         );
       }
     });
   } catch {
     updateWakeLockStatus(
-      timer.running ? 'Unavailable' : 'Standby'
+      isTiming() ? 'Unavailable' : 'Standby'
     );
   } finally {
     wakeLockPending = false;
@@ -433,17 +434,19 @@ async function releaseWakeLock() {
   document.addEventListener('visibilitychange', () => {
   if (
     document.visibilityState === 'visible' &&
-    timer.running
+    isTiming()
   ) {
-    tick();
+    if(recoveryRun) tickRecovery(); else tick();
 
-    if (timer.running) {
+    if (isTiming()) {
       requestWakeLock();
     }
   }
 });
 // Timestamp-based timing prevents setInterval drift while the page remains active.
 let interrupted=null;
+let recoveryRun=null;
+const isTiming=()=>timer.running||!!recoveryRun;
 let timer={running:false,remaining:900,deadline:0,segments:[],segmentIndex:0,segmentRemaining:0,segmentDeadline:0,handle:null};
 const num=(id,min,max)=>Math.min(max,Math.max(min,Number($(id).value)||min));
 function mode(){return $('timerMode').value}
@@ -708,12 +711,12 @@ const recoveryInputs=['timerMode','duration','timerRounds','workSec','restSec','
 function setInterruptedUI(saved){
   $('interruptionPanel').classList.toggle('hide',!saved);
   [...recoveryInputs,'timerToggle','timerReset','startCircuit','completeActiveWorkout'].forEach(id=>$(id).disabled=!!saved);
-  $('rewarmInterrupted').classList.toggle('hide',!saved||saved.settings.timerMode!=='circuit'||!Number(saved.settings.warmupMinutes));
+  $('rewarmInterrupted').classList.toggle('hide',!saved);
   drawTimer();
-  if(saved){$('timerState').textContent='Interrupted — paused';$('interruptionStatus').textContent=fmt(saved.timer.remaining)+' remaining · '+(saved.persisted?'Saved on this device':'Storage unavailable — keep this page open');}
+  if(saved){$('timerToggle').textContent='Interrupted';$('timerState').textContent='Interrupted — paused';$('interruptionStatus').textContent=fmt(saved.timer.remaining)+' remaining · '+(saved.persisted?'Saved on this device':'Storage unavailable — keep this page open');}
 }
 function persistInterrupted(){try{localStorage.setItem(recoveryKey,JSON.stringify(interrupted));interrupted.persisted=true;}catch{interrupted.persisted=false;}}
-function clearInterrupted(){try{localStorage.removeItem(recoveryKey);}catch{if(interrupted?.persisted)return false;}interrupted=null;setInterruptedUI(null);return true;}
+function clearInterrupted(){stopRecovery();try{localStorage.removeItem(recoveryKey);}catch{if(interrupted?.persisted)return false;}interrupted=null;setInterruptedUI(null);return true;}
 $('interruptWorkout').addEventListener('click',()=>{
   if(interrupted||!activeWorkout||!timer.remaining)return;
   if(timer.running)timer.remaining=Math.max(0,Math.ceil((timer.deadline-Date.now())/1000));
@@ -731,14 +734,37 @@ function restoreInterrupted(saved){
   interrupted=saved;interrupted.persisted=true;setInterruptedUI(saved);openTab('timers');
 }
 $('resumeInterrupted').addEventListener('click',()=>{
-  if(!interrupted||!clearInterrupted())return;
+  if(!interrupted||recoveryRun||!clearInterrupted())return;
   toggleTimer();
 });
+function stopRecovery(message){
+  if(recoveryRun){clearInterval(recoveryRun.handle);recoveryRun=null;releaseWakeLock();for(const tone of activeTones){try{tone.stop();}catch{}}activeTones.clear();}
+  $('recoveryWarmupPanel').classList.add('hide');
+  ['resumeInterrupted','rewarmInterrupted','partialInterrupted','discardInterrupted'].forEach(id=>$(id).disabled=false);
+  if(message&&interrupted)$('interruptionStatus').textContent=message+' · '+fmt(interrupted.timer.remaining)+' workout time preserved';
+}
+function tickRecovery(){
+  if(!recoveryRun)return;
+  const r=recoveryRun, left=Math.max(0,Math.ceil((r.deadline-Date.now())/1000));
+  $('recoveryTime').textContent=fmt(left);
+  if(!left){stopRecovery('Recovery warmup complete. Resume when ready');playAlert('warmupComplete');return;}
+  let elapsed=180-left,index=0;
+  while(index<r.plan.length-1&&elapsed>=r.plan[index].seconds){elapsed-=r.plan[index].seconds;index++;}
+  if(index!==r.index){if(r.index!==-1)playAlert('movement');r.index=index;
+    $('recoveryMoves').innerHTML=r.plan.map((m,i)=>`<div class="exercise"><strong class="${i===index?'accent':'muted'}">${escapeHTML(m.name)}</strong><span>${fmt(m.seconds)}</span></div>`).join('');}
+  $('recoveryMovement').textContent=r.plan[index].name+' · '+fmt(r.plan[index].seconds-elapsed);
+}
 $('rewarmInterrupted').addEventListener('click',()=>{
-  if(!interrupted)return;
-  // Preserve the interrupted circuit separately while the user warms up off-timer.
-  $('interruptionStatus').textContent='Progress preserved. Repeat your warmup at an easy pace, then select Resume Workout when ready. '+fmt(interrupted.timer.remaining)+' remaining.';
+  if(!interrupted||recoveryRun)return;
+  unlockAudio();
+  recoveryRun={plan:buildWarmupPlan(180),deadline:Date.now()+180000,index:-1,handle:null};
+  $('recoveryWarmupPanel').classList.remove('hide');
+  ['resumeInterrupted','rewarmInterrupted','partialInterrupted','discardInterrupted'].forEach(id=>$(id).disabled=true);
+  $('interruptionStatus').textContent='Recovery warmup running · '+fmt(interrupted.timer.remaining)+' workout time preserved';
+  requestWakeLock();playAlert('work');recoveryRun.handle=setInterval(tickRecovery,200);tickRecovery();
 });
+$('interruptRecovery').addEventListener('click',()=>stopRecovery('Recovery interrupted. Resume or warm up again when ready'));
+$('skipRecovery').addEventListener('click',()=>stopRecovery('Recovery warmup skipped. Resume when ready'));
 $('partialInterrupted').addEventListener('click',()=>{
   if(!interrupted)return;
   const records=readHistory();records.unshift({date:todayKey(),title:interrupted.workout.title,status:'partial'});
