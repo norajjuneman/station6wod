@@ -4,6 +4,7 @@
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#101820;color:#f5f7f9;color-scheme:dark}*{box-sizing:border-box}body{margin:0}main{max-width:650px;margin:auto;padding:20px 17px 100px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font-weight:900;letter-spacing:1.5px;font-size:19px}.accent{color:#ffac38}.muted{color:#aebbc7}.small{font-size:12px}.eyebrow{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;font-weight:800}.hero{background:linear-gradient(135deg,#334657,#192732);padding:23px;border:1px solid #405467;border-radius:22px;margin:24px 0 15px}h1{font-size:31px;line-height:1.15;margin:9px 0}h2{font-size:20px;margin:0 0 12px}h3{margin:6px 0;font-size:17px}.panel{background:#1b2833;border:1px solid #354754;border-radius:16px;padding:17px;margin:14px 0}.pill{display:inline-block;background:#354653;border-radius:99px;padding:7px 10px;font-size:12px;margin:12px 6px 0 0}.btn{background:#ffac38;border:0;border-radius:11px;padding:13px 16px;color:#17202a;font:inherit;font-weight:800;cursor:pointer}.btn.secondary{background:#344654;color:#f4f7f9}.btn:disabled{opacity:.5;cursor:not-allowed}.wide{width:100%;margin-top:12px}.exercise{padding:12px 0;border-bottom:1px solid #344754;display:flex;justify-content:space-between;gap:15px}.exercise:last-child{border-bottom:0}.exercise span{text-align:right}.hide{display:none!important}.nav{position:fixed;bottom:0;left:0;right:0;background:#16232d;border-top:1px solid #364753;padding:8px 6px max(8px,env(safe-area-inset-bottom));z-index:5}.nav-inner{max-width:650px;margin:auto;display:flex}.nav button{flex:1;min-width:0;background:none;border:0;color:#aebbc7;font-size:11px;padding:10px 1px;cursor:pointer}.nav button.active{color:#ffac38;font-weight:900}.time{font-size:56px;font-weight:900;text-align:center;font-variant-numeric:tabular-nums;margin:12px 0}.timer-state{text-align:center;min-height:22px;color:#ffbd64;font-weight:700}.row{display:flex;gap:9px;align-items:center}.row>*{flex:1}label{display:block;color:#bac7d1;font-size:13px;margin:12px 0 5px}select,input{background:#101c25;border:1px solid #4b6170;border-radius:9px;padding:11px;color:white;font:inherit;width:100%}button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #ffac38;outline-offset:2px}.status{font-size:12px;margin-top:12px;line-height:1.5}.good{color:#8de0ae}.bad{color:#ffb1a8}.item{padding:12px 0;border-bottom:1px solid #344754}.item:last-child{border-bottom:0}.tag{color:#ffbd64;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:800}a{color:#ffbd64}#weekItems .panel{margin:10px 0}
 
 .exercise-entry{padding:12px 0;border-bottom:1px solid #344754}.exercise-entry:last-child{border-bottom:0}.exercise-entry .exercise{padding:0;border:0;align-items:baseline}.exercise-entry .exercise strong{flex:1;min-width:0;overflow-wrap:anywhere}.exercise-entry .exercise span{max-width:50%;overflow-wrap:anywhere}.exercise-info{margin-top:10px}.exercise-info summary{cursor:pointer;color:#ffbd64;font-size:13px;padding:5px 0}.exercise-info summary:focus-visible{outline:2px solid #ffac38}.exercise-info p{margin:5px 0 12px;line-height:1.5;white-space:pre-line;overflow-wrap:anywhere}.exercise-info h4{margin:12px 0 4px;font-size:13px}.exercise-note{margin:8px 0 0;line-height:1.45;overflow-wrap:anywhere}
+.btn.emergency{background:#a52e30;color:white}.interruption-panel{border:1px solid #b96c67;padding:12px;border-radius:11px;margin-top:12px}.interruption-panel p{line-height:1.5}
 </style></head><body><main><header class="top"><div class="brand"><span class="accent">◆</span> STATION WOD</div><div class="eyebrow muted">CREW FITNESS</div></header>
 <section id="today"><div class="hero"><div class="eyebrow accent" id="dateLabel"></div><h1 id="workoutTitle">Loading workouts…</h1><div class="muted" id="workoutFocus"></div><div id="pills"></div><div class="status muted" id="syncStatus" role="status">Connecting to Google Sheets…</div><button class="btn wide" id="startWorkout">START WORKOUT</button></div><div class="panel"><h2>Today's Circuit</h2><div id="exercises"></div></div><button class="btn secondary wide" id="completeWorkout">✓ Mark workout complete</button></section>
 <section id="week" class="hide"><h1>4-Week Workout Planner</h1><p class="muted">Plan as many weeks ahead as you like in Google Sheets. Tap a day to preview its workout.</p><div class="row"><button class="btn secondary" id="previousWeeks" type="button">← Previous 4 weeks</button><button class="btn secondary" id="nextWeeks" type="button">Next 4 weeks →</button></div><p class="muted small" id="calendarRange"></p><div id="weekItems"></div></section>
@@ -30,6 +31,15 @@
 </div>
 <div class="time" id="timerDisplay" aria-live="off">15:00</div>
 <div class="timer-state" id="timerState">Ready</div><div class="row"><button class="btn" id="timerToggle">Start</button><button class="btn secondary" id="timerReset">Reset</button></div>
+<button class="btn emergency wide hide" id="interruptWorkout" type="button">INTERRUPT — RESPONDING TO CALL</button>
+<div id="interruptionPanel" class="interruption-panel hide" role="status">
+<strong>Workout interrupted</strong><p class="small muted" id="interruptionStatus"></p>
+<p class="small muted">Reassess readiness after the call. Warm up again if needed before resuming.</p>
+<button class="btn wide" id="resumeInterrupted">Resume Workout</button>
+<button class="btn secondary wide" id="rewarmInterrupted">Warm Up Again Before Resuming</button>
+<button class="btn secondary wide" id="partialInterrupted">Save Partial Workout</button>
+<button class="btn secondary wide" id="discardInterrupted">Discard Interrupted Workout</button>
+</div>
 <button class="btn secondary wide hide" id="startCircuit" type="button">Skip Warmup / Start Circuit</button>
   <button class="btn secondary wide" id="soundToggle" type="button" aria-pressed="true">🔊 Sound: ON</button>
   <p id="wakeLockStatus" class="small muted"
@@ -58,6 +68,7 @@ const mobility=[['Neck','Gentle neck turns','5 per side'],['Shoulders','Wall sli
 const $=id=>document.getElementById(id);
   // Audible timer alerts
 let audioContext = null;
+const activeTones=new Set();
 let soundEnabled = true;
 
 try {
@@ -103,6 +114,8 @@ function playTone(frequency, duration, delay = 0) {
     oscillator.connect(gain);
     gain.connect(audioContext.destination);
 
+    activeTones.add(oscillator);
+    oscillator.onended=()=>activeTones.delete(oscillator);
     oscillator.start(start);
     oscillator.stop(start + duration);
   } catch {}
@@ -287,7 +300,7 @@ function showActiveWorkout(w){
 
 
 
-function applyWorkoutTimer(w){if(!w)return;showActiveWorkout(w);
+function applyWorkoutTimer(w){if(!w)return;if(interrupted){openTab("timers");return;}showActiveWorkout(w);
 const selected=validModes.has(w.format)?w.format:"countdown";$("timerMode").value=selected;configureInputs();
 const isMobility = /mobility|recovery/i.test(w.focus || '');
 
@@ -340,12 +353,12 @@ const format=(r.format||r['timer type']||'countdown').toLowerCase().trim().repla
 return {date:parseDate(r.date),title:r.title,focus:r.focus,minutes:Number(r.minutes),equipment:r.equipment,rounds:r.rounds,format:validModes.has(format)?format:'countdown',workSeconds:Number(r['work seconds']||r.workseconds||0),restSeconds:r['rest seconds']!==undefined&&r['rest seconds']!==''?Number(r['rest seconds']):NaN,timerRounds:Number(r['timer rounds']||r.timerrounds||0),exercises:r.exercises.split('|').map(x=>x.trim()).filter(Boolean).map(x=>{const parts=x.split('::');return [parts[0].trim(),parts.slice(1).join('::').trim()]})}
 }).filter(w=>w.date&&w.minutes>0&&w.minutes<=180).sort((a,b)=>a.date.localeCompare(b.date));if(!scheduled.length)throw Error('No valid dated workouts; check Date and Minutes');status.textContent=`Google Sheets connected · ${scheduled.length} workouts loaded`;status.className='status good';render()}catch(err){status.textContent='Google Sheets not loaded: '+err.message;status.className='status bad';console.warn('Station WOD:',err)}}
 function readHistory(){try{const value=JSON.parse(localStorage.getItem('stationWodHistory')||'[]');return Array.isArray(value)?value:[]}catch{return []}}
-function renderHistory(){const records=readHistory();$('historyItems').innerHTML=records.length?records.map(r=>`<div class="panel"><strong>${escapeHTML(r.title)}</strong><div class="muted small">${escapeHTML(r.date)}</div></div>`).join(''):'<div class="panel">No workouts completed yet.</div>'}
+function renderHistory(){const records=readHistory();$('historyItems').innerHTML=records.length?records.map(r=>`<div class="panel"><strong>${escapeHTML(r.title)}</strong><div class="muted small">${escapeHTML(r.date)}${r.status==='partial'?' · Partial / interrupted':''}</div></div>`).join(''):'<div class="panel">No workouts completed yet.</div>'}
 
 function saveWorkout(w){
-  if(!w)return;
+  if(!w||interrupted)return;
   const records=readHistory(),key=todayKey();
-  if(!records.some(r=>r.date===key&&r.title===w.title)){
+  if(!records.some(r=>r.date===key&&r.title===w.title&&r.status!=="partial")){
     records.unshift({date:key,title:w.title});
     try{localStorage.setItem('stationWodHistory',JSON.stringify(records))}
     catch{alert('Unable to save history on this device.');return;}
@@ -430,6 +443,7 @@ async function releaseWakeLock() {
   }
 });
 // Timestamp-based timing prevents setInterval drift while the page remains active.
+let interrupted=null;
 let timer={running:false,remaining:900,deadline:0,segments:[],segmentIndex:0,segmentRemaining:0,segmentDeadline:0,handle:null};
 const num=(id,min,max)=>Math.min(max,Math.max(min,Number($(id).value)||min));
 function mode(){return $('timerMode').value}
@@ -566,6 +580,7 @@ function drawWarmupPlan() {
   ).join('');
 }
 function drawTimer(){
+  $("interruptWorkout").classList.toggle("hide",!!interrupted||!activeWorkout||!timer.remaining||!timer.hasStarted);
     drawWarmupPlan();
   if(mode()==='circuit'){
     const phase=timer.segments[0]?.name||'CIRCUIT';
@@ -581,7 +596,7 @@ function drawTimer(){
 const m=mode();$('timerDisplay').textContent=fmt(timer.remaining);let phase=timer.segments[timer.segmentIndex];if(!timer.remaining){$('timerState').textContent='Finished';return}if(m==='emom'){const total=num('duration',1,180)*60,elapsed=total-timer.remaining;$('timerState').textContent=`Minute ${Math.floor(elapsed/60)+1} · ${fmt(60-elapsed%60)} until next round`}else if(m==='tabata'||m==='intervals'){$('timerState').textContent=phase?`${phase.name} · ${fmt(timer.segmentRemaining)}`:'Ready'}else $('timerState').textContent=timer.running?'Running':'Ready'}
 
 $('startCircuit').addEventListener('click',()=>{
-  if(mode()!=='circuit')return;
+  if(mode()!=='circuit'||interrupted)return;
   stopTick();
   const seconds=num('duration',1,180)*60;
   timer={
@@ -606,7 +621,7 @@ function stopTick() {
 
   releaseWakeLock();
 }
-function resetTimer(){stopTick();const segments=buildSegments();timer={running:false,remaining:segments.reduce((n,s)=>n+s.seconds,0),deadline:0,segments,segmentIndex:0,segmentRemaining:segments[0]?.seconds||0,segmentDeadline:0,handle:null};
+function resetTimer(){if(interrupted)return;stopTick();const segments=buildSegments();timer={running:false,remaining:segments.reduce((n,s)=>n+s.seconds,0),deadline:0,segments,segmentIndex:0,segmentRemaining:segments[0]?.seconds||0,segmentDeadline:0,handle:null};
  timer.warmupPlan =
   segments[0]?.name === 'WARMUP'
     ? buildWarmupPlan(segments[0].seconds)
@@ -663,6 +678,7 @@ if(mode()==='circuit'){
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
 try{navigator.vibrate?.([180,100,180])}catch{}}}
 function toggleTimer(){
+  if(interrupted)return;
   unlockAudio();if(timer.running){tick();if(!timer.running)return;timer.running=false;stopTick();$('timerToggle').textContent='Resume';drawTimer();return}
 if(!timer.remaining){
   if(mode()==='circuit'&&timer.segments[0]?.name==='CIRCUIT'){
@@ -687,7 +703,54 @@ $('completeActiveWorkout').addEventListener('click',()=>{
   saveWorkout(activeWorkout);
 });
 
+const recoveryKey='stationWodInterruptedV1';
+const recoveryInputs=['timerMode','duration','timerRounds','workSec','restSec','warmupMinutes'];
+function setInterruptedUI(saved){
+  $('interruptionPanel').classList.toggle('hide',!saved);
+  [...recoveryInputs,'timerToggle','timerReset','startCircuit','completeActiveWorkout'].forEach(id=>$(id).disabled=!!saved);
+  $('rewarmInterrupted').classList.toggle('hide',!saved||saved.settings.timerMode!=='circuit'||!Number(saved.settings.warmupMinutes));
+  drawTimer();
+  if(saved){$('timerState').textContent='Interrupted — paused';$('interruptionStatus').textContent=fmt(saved.timer.remaining)+' remaining · '+(saved.persisted?'Saved on this device':'Storage unavailable — keep this page open');}
+}
+function persistInterrupted(){try{localStorage.setItem(recoveryKey,JSON.stringify(interrupted));interrupted.persisted=true;}catch{interrupted.persisted=false;}}
+function clearInterrupted(){try{localStorage.removeItem(recoveryKey);}catch{if(interrupted?.persisted)return false;}interrupted=null;setInterruptedUI(null);return true;}
+$('interruptWorkout').addEventListener('click',()=>{
+  if(interrupted||!activeWorkout||!timer.remaining)return;
+  if(timer.running)timer.remaining=Math.max(0,Math.ceil((timer.deadline-Date.now())/1000));
+  timer.running=false;stopTick();
+  for(const tone of activeTones){try{tone.stop();}catch{}}activeTones.clear();
+  if(!timer.remaining){drawTimer();return;}
+  interrupted={workout:activeWorkout,settings:Object.fromEntries(recoveryInputs.map(id=>[id,$(id).value])),timer:{...timer,handle:null,deadline:0,running:false},persisted:false};
+  persistInterrupted();setInterruptedUI(interrupted);
+});
+function restoreInterrupted(saved){
+  if(!saved||!saved.workout||!Array.isArray(saved.workout.exercises)||!saved.settings||!validModes.has(saved.settings.timerMode)||!saved.timer||!Array.isArray(saved.timer.segments)||!Number.isFinite(saved.timer.remaining)||saved.timer.remaining<=0)return;
+  showActiveWorkout(saved.workout);$('timerMode').value=saved.settings.timerMode;configureInputs();
+  recoveryInputs.forEach(id=>$(id).value=saved.settings[id]);
+  timer={...saved.timer,running:false,handle:null,deadline:0};
+  interrupted=saved;interrupted.persisted=true;setInterruptedUI(saved);openTab('timers');
+}
+$('resumeInterrupted').addEventListener('click',()=>{
+  if(!interrupted||!clearInterrupted())return;
+  toggleTimer();
+});
+$('rewarmInterrupted').addEventListener('click',()=>{
+  if(!interrupted)return;
+  // Preserve the interrupted circuit separately while the user warms up off-timer.
+  $('interruptionStatus').textContent='Progress preserved. Repeat your warmup at an easy pace, then select Resume Workout when ready. '+fmt(interrupted.timer.remaining)+' remaining.';
+});
+$('partialInterrupted').addEventListener('click',()=>{
+  if(!interrupted)return;
+  const records=readHistory();records.unshift({date:todayKey(),title:interrupted.workout.title,status:'partial'});
+  try{localStorage.setItem('stationWodHistory',JSON.stringify(records));}catch{alert('Unable to save partial workout. Progress retained.');return;}
+  if(!clearInterrupted()){alert('Unable to clear saved interruption.');return;}showActiveWorkout(null);resetTimer();renderHistory();openTab('history');
+});
+$('discardInterrupted').addEventListener('click',()=>{
+  if(!interrupted||!confirm('Discard saved workout progress?'))return;
+  if(!clearInterrupted()){alert('Unable to clear saved interruption.');return;}showActiveWorkout(null);resetTimer();
+});
 configureInputs();
 render();
-loadWarmupLibrary().then(() => loadSheet());
+try{restoreInterrupted(JSON.parse(localStorage.getItem(recoveryKey)||'null'));}catch(error){console.warn('Workout recovery:',error);}
+loadWarmupLibrary().then(() => {if(interrupted)showActiveWorkout(interrupted.workout);return loadSheet();});
 </script></body></html>
